@@ -6,8 +6,8 @@
 body {
   margin: 0;
   padding: 0;
-  width: 320px;
-  min-height: 360px;
+  width: 360px;
+  min-height: 420px;
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
   color: #f8fafc;
   display: flex;
@@ -18,6 +18,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
 }
 
@@ -26,6 +27,21 @@ body {
   font-size: 1.1rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.app-subtitle {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.65);
 }
 
 .app-header button {
@@ -88,6 +104,9 @@ main {
   padding: 12px;
   box-shadow: 0 12px 30px rgba(8, 47, 73, 0.45);
   border: 1px solid rgba(125, 211, 252, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .identity-card h2 {
@@ -95,30 +114,59 @@ main {
   font-size: 0.95rem;
 }
 
-.identity-card p {
-  margin: 4px 0;
+.identity-domain {
+  margin: 0;
   font-size: 0.75rem;
   color: rgba(226, 232, 240, 0.7);
 }
 
 .identity-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: rgba(226, 232, 240, 0.75);
+  word-break: break-word;
 }
 
 .identity-meta span {
-  font-size: 0.7rem;
   background: rgba(125, 211, 252, 0.16);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.identity-meta .mono {
+  font-family: 'Fira Code', 'Roboto Mono', monospace;
+}
+
+.identity-notes {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.identity-status {
+  font-size: 0.7rem;
   border-radius: 999px;
-  padding: 2px 8px;
+  padding: 4px 8px;
+  width: fit-content;
+}
+
+.identity-status[data-state='authorized'] {
+  background: rgba(45, 212, 191, 0.2);
+  color: #99f6e4;
+}
+
+.identity-status[data-state='unauthorized'] {
+  background: rgba(148, 163, 184, 0.2);
+  color: rgba(226, 232, 240, 0.75);
 }
 
 .card-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 4px;
 }
 
 .card-actions button {
@@ -141,6 +189,11 @@ main {
   color: inherit;
 }
 
+.card-actions button.danger {
+  background: rgba(248, 113, 113, 0.2);
+  color: #fecaca;
+}
+
 .card-actions button:hover,
 .card-actions button:focus-visible {
   transform: translateY(-1px);
@@ -161,6 +214,12 @@ main {
   border: none;
   padding: 8px 14px;
   cursor: pointer;
+}
+
+.primary:hover,
+.primary:focus-visible {
+  outline: none;
+  filter: brightness(1.1);
 }
 
 .app-footer {

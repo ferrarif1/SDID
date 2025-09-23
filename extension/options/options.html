@@ -10,64 +10,130 @@
     <main class="container">
       <header class="page-header">
         <div>
-          <h1>SDID Identity Manager</h1>
-          <p class="subtitle">Securely manage passkey-friendly identities for your team.</p>
+          <h1>SDID Identity Manager｜SDID 身份管理器</h1>
+          <p class="subtitle">
+            Create decentralized identities, manage roles, and approve dapp logins in one place.｜集中创建去中心化身份、管理角色并审批去中心化应用的登录请求。
+          </p>
         </div>
-        <button id="create-demo" type="button">Create demo identities</button>
+        <button id="create-demo" type="button">Create demo identities｜生成示例身份</button>
       </header>
 
       <section class="panel">
-        <h2 id="form-title">Create identity</h2>
+        <h2 id="form-title">Create DID identity｜创建 DID 身份</h2>
         <form id="identity-form" autocomplete="off">
           <div class="field-group">
-            <label for="label">Display name</label>
-            <input id="label" name="label" required placeholder="e.g. Production Salesforce" />
+            <label for="label">Display name｜显示名称</label>
+            <input id="label" name="label" required placeholder="e.g. Operations Admin / 示例：运营管理员" />
           </div>
 
           <div class="field-grid">
             <div class="field-group">
-              <label for="username">Username / Email</label>
-              <input id="username" name="username" placeholder="user@example.com" />
+              <label for="roles">Roles｜角色</label>
+              <input
+                id="roles"
+                name="roles"
+                placeholder="Comma separated roles / 多个角色请用逗号分隔"
+              />
+              <p class="field-hint">Roles help dapps determine permissions.｜角色用于帮助去中心化应用判断权限范围。</p>
             </div>
             <div class="field-group">
-              <label for="password">Password / Passcode</label>
-              <input id="password" name="password" placeholder="Optional password or PIN" />
-            </div>
-          </div>
-
-          <div class="field-grid">
-            <div class="field-group">
-              <label for="domain">Domain / App URL</label>
+              <label for="domain">Trusted domain｜信任域名</label>
               <input id="domain" name="domain" placeholder="https://app.example.com" />
+              <p class="field-hint">Optional hint about where this identity is used.｜可选：用于说明身份适用的域名。</p>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field-group">
+              <label for="username">Username / Email｜用户名 / 邮箱</label>
+              <input id="username" name="username" placeholder="Optional fallback login name / 可选备用登录名" />
             </div>
             <div class="field-group">
-              <label for="tags">Tags</label>
-              <input id="tags" name="tags" placeholder="Comma separated tags" />
+              <label for="password">Password / Passcode｜密码 / 口令</label>
+              <input id="password" name="password" placeholder="Optional fallback secret / 可选备用口令" />
             </div>
           </div>
 
           <div class="field-group">
-            <label for="notes">Notes</label>
-            <textarea id="notes" name="notes" rows="3" placeholder="Add usage hints, backup codes or recovery steps"></textarea>
+            <label for="tags">Tags｜标签</label>
+            <input id="tags" name="tags" placeholder="Comma separated tags / 使用逗号分隔多个标签" />
+          </div>
+
+          <div class="field-group">
+            <label for="notes">Notes｜备注</label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows="3"
+              placeholder="Add approval rules, recovery tips, or reminders.｜可记录审批规则、恢复提示或其他备注。"
+            ></textarea>
+          </div>
+
+          <div class="field-group key-pair-group">
+            <div class="field-group">
+              <label for="did">Decentralized ID (DID)｜去中心化身份标识</label>
+              <div class="did-row">
+                <input
+                  id="did"
+                  name="did"
+                  readonly
+                  placeholder="Generate a DID before saving｜保存前请生成 DID"
+                />
+                <button id="generate-did" type="button" class="secondary">Generate DID｜生成 DID</button>
+              </div>
+              <p class="field-hint">
+                Generates a new elliptic-curve key pair and DID for signing login requests.｜生成新的椭圆曲线密钥对和 DID，用于签名登录请求。
+              </p>
+            </div>
+            <div class="key-columns">
+              <div class="field-group">
+                <label for="public-key">Public key (JWK)｜公钥（JWK）</label>
+                <textarea
+                  id="public-key"
+                  rows="4"
+                  readonly
+                  placeholder="Generate DID to view public key｜生成 DID 后可查看公钥"
+                ></textarea>
+              </div>
+              <div class="field-group secret-group">
+                <label for="private-key">Private key (JWK)｜私钥（JWK）</label>
+                <div class="secret-control">
+                  <textarea
+                    id="private-key"
+                    rows="4"
+                    readonly
+                    data-hidden="true"
+                    placeholder="Generate DID to view private key｜生成 DID 后可查看私钥"
+                  ></textarea>
+                  <div class="secret-buttons">
+                    <button id="toggle-private" type="button" class="link">Show｜显示</button>
+                    <button id="copy-private" type="button" class="link">Copy｜复制</button>
+                  </div>
+                </div>
+                <p class="field-hint">
+                  Keep the private key secure and never share it with untrusted parties.｜请妥善保管私钥，勿向不可信的对象泄露。
+                </p>
+              </div>
+            </div>
           </div>
 
           <div class="form-actions">
-            <button id="cancel-edit" type="button" hidden>Cancel</button>
-            <button class="primary" type="submit">Save identity</button>
+            <button id="cancel-edit" type="button" hidden>Cancel｜取消</button>
+            <button class="primary" type="submit">Save identity｜保存身份</button>
           </div>
         </form>
       </section>
 
       <section class="panel">
         <div class="panel-header">
-          <h2>Saved identities</h2>
+          <h2>Saved identities｜已保存的身份</h2>
           <div class="toolbar">
-            <button id="export" type="button">Export JSON</button>
+            <button id="export" type="button">Export JSON｜导出 JSON</button>
             <label class="import-button">
               <input id="import-file" type="file" accept="application/json" hidden />
-              <span>Import JSON</span>
+              <span>Import JSON｜导入 JSON</span>
             </label>
-            <button id="clear-storage" type="button" class="danger">Clear all</button>
+            <button id="clear-storage" type="button" class="danger">Clear all｜清空全部</button>
           </div>
         </div>
         <ul id="identity-collection" class="identity-collection" aria-live="polite"></ul>
@@ -76,11 +142,11 @@
 
     <dialog id="confirm-clear">
       <form method="dialog">
-        <h3>Remove all identities?</h3>
-        <p>This cannot be undone. Make sure you exported a backup first.</p>
+        <h3>Remove all identities?｜确认删除所有身份？</h3>
+        <p>This cannot be undone. Make sure you exported a backup first.｜该操作无法撤销，请确保已提前导出备份。</p>
         <div class="dialog-actions">
-          <button value="cancel">Cancel</button>
-          <button value="confirm" class="danger">Delete all</button>
+          <button value="cancel">Cancel｜取消</button>
+          <button value="confirm" class="danger">Delete all｜全部删除</button>
         </div>
       </form>
     </dialog>

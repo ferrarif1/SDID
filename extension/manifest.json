@@ -28,6 +28,15 @@
     "tabs",
     "clipboardWrite"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "pageBridge.js",
+        "shared/i18n.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "host_permissions": [
     "http://*/*",
     "https://*/*"

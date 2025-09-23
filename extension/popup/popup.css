@@ -141,6 +141,49 @@ main {
   gap: 16px;
 }
 
+.permission-banner {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+}
+
+.permission-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.permission-banner h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0b1f33;
+}
+
+.permission-banner p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.permission-origin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #0f172a;
+}
+
+.permission-origin code {
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: 'SFMono-Regular', 'JetBrains Mono', ui-monospace, 'Fira Code', monospace;
+  font-size: 0.72rem;
+  color: #1e293b;
+}
+
 .search {
   display: flex;
   flex-direction: column;

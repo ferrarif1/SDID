@@ -17,6 +17,9 @@ const createFirstButton = document.getElementById('create-first');
 const manageButton = document.getElementById('open-options');
 const languageToggle = document.getElementById('language-toggle');
 const languageButtons = languageToggle ? Array.from(languageToggle.querySelectorAll('button')) : [];
+const permissionBanner = document.getElementById('permission-banner');
+const permissionButton = document.getElementById('enable-site');
+const permissionOriginValue = document.getElementById('permission-origin-value');
 
 let currentLanguage = getLanguage();
 
@@ -41,6 +44,22 @@ function safeParseJson(value) {
   } catch (_error) {
     return null;
   }
+}
+
+function isHttpOrigin(origin) {
+  return typeof origin === 'string' && /^https?:\/\//i.test(origin);
+}
+
+function toOriginPattern(origin) {
+  if (!isHttpOrigin(origin)) {
+    return null;
+  }
+  return `${origin.replace(/\/$/, '')}/*`;
+}
+
+function getContentScriptId(pattern) {
+  const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  return `sdid_bridge_${sanitized.slice(0, 120)}`;
 }
 
 function normalizeIdentity(raw) {
@@ -79,13 +98,67 @@ async function loadActiveContext() {
     }
     if (activeTab?.url) {
       try {
-        currentOrigin = new URL(activeTab.url).origin;
+        const parsedOrigin = new URL(activeTab.url).origin;
+        currentOrigin = isHttpOrigin(parsedOrigin) ? parsedOrigin : null;
       } catch (_error) {
         currentOrigin = null;
       }
     }
+    if (permissionOriginValue) {
+      permissionOriginValue.textContent = currentOrigin || '';
+    }
   } catch (error) {
     console.error('Unable to determine active tab context', error);
+  }
+}
+
+async function updatePermissionState() {
+  if (!permissionBanner) {
+    return false;
+  }
+
+  if (permissionOriginValue) {
+    permissionOriginValue.textContent = currentOrigin || '';
+  }
+
+  const canRequest = Boolean(activeTabId) && isHttpOrigin(currentOrigin);
+  if (permissionButton) {
+    permissionButton.disabled = !canRequest;
+  }
+
+  if (!canRequest) {
+    permissionBanner.hidden = true;
+    return false;
+  }
+
+  const originPattern = toOriginPattern(currentOrigin);
+  if (!originPattern) {
+    permissionBanner.hidden = true;
+    if (permissionButton) {
+      permissionButton.disabled = true;
+    }
+    return false;
+  }
+
+  try {
+    const hasPermission = await chrome.permissions.contains({ origins: [originPattern] });
+    permissionBanner.hidden = hasPermission;
+    if (hasPermission) {
+      try {
+        await ensureContentScriptRegistration(originPattern);
+        await ensureBridgeInjectedIntoActiveTab();
+      } catch (error) {
+        console.warn('Unable to refresh SDID bridge for origin', originPattern, error);
+      }
+    }
+    return hasPermission;
+  } catch (error) {
+    console.error('Unable to determine SDID permissions for origin', error);
+    permissionBanner.hidden = true;
+    if (permissionButton) {
+      permissionButton.disabled = true;
+    }
+    return false;
   }
 }
 
@@ -94,6 +167,49 @@ async function loadIdentities() {
   const items = Array.isArray(stored[IDENTITY_STORAGE_KEY]) ? stored[IDENTITY_STORAGE_KEY] : [];
   identities = items.map(normalizeIdentity).filter(Boolean);
   applyFilter(searchInput.value.trim());
+}
+
+async function ensureContentScriptRegistration(originPattern) {
+  if (!originPattern || !chrome?.scripting?.registerContentScripts) {
+    return;
+  }
+  const scriptId = getContentScriptId(originPattern);
+  try {
+    await chrome.scripting.unregisterContentScripts({ ids: [scriptId] });
+  } catch (error) {
+    const message = String(error?.message || '');
+    if (!/no\sregistered\scontent\sscript/i.test(message) && !/invalid\sscript\sid/i.test(message)) {
+      console.debug('No existing SDID bridge registration to remove', error);
+    }
+  }
+  await chrome.scripting.registerContentScripts([
+    {
+      id: scriptId,
+      js: ['contentScript.js'],
+      matches: [originPattern],
+      runAt: 'document_start'
+    }
+  ]);
+}
+
+async function ensureBridgeInjectedIntoActiveTab() {
+  if (!activeTabId || !chrome?.scripting?.executeScript) {
+    return;
+  }
+  let alreadyInjected = false;
+  try {
+    const response = await chrome.tabs.sendMessage(activeTabId, { type: 'sdid-ping' });
+    alreadyInjected = Boolean(response?.ok);
+  } catch (_error) {
+    alreadyInjected = false;
+  }
+  if (alreadyInjected) {
+    return;
+  }
+  await chrome.scripting.executeScript({
+    target: { tabId: activeTabId },
+    files: ['contentScript.js']
+  });
 }
 
 function applyFilter(query) {
@@ -317,6 +433,37 @@ function setStatus(message, isError = false) {
   statusMessage.dataset.state = isError ? 'error' : 'info';
 }
 
+if (permissionButton) {
+  permissionButton.addEventListener('click', async () => {
+    if (!currentOrigin || !isHttpOrigin(currentOrigin)) {
+      setStatus(translate('popup.permissions.noOrigin'), true);
+      return;
+    }
+    const originPattern = toOriginPattern(currentOrigin);
+    if (!originPattern) {
+      setStatus(translate('popup.permissions.noOrigin'), true);
+      return;
+    }
+    try {
+      let hasPermission = await chrome.permissions.contains({ origins: [originPattern] });
+      if (!hasPermission) {
+        hasPermission = await chrome.permissions.request({ origins: [originPattern] });
+      }
+      if (!hasPermission) {
+        setStatus(translate('popup.permissions.denied'), true);
+        return;
+      }
+      await ensureContentScriptRegistration(originPattern);
+      await ensureBridgeInjectedIntoActiveTab();
+      await updatePermissionState();
+      setStatus(translate('popup.permissions.success'));
+    } catch (error) {
+      console.error('Unable to enable SDID bridge for origin', error);
+      setStatus(translate('popup.permissions.failed'), true);
+    }
+  });
+}
+
 searchInput.addEventListener('input', (event) => {
   applyFilter(event.target.value.trim());
 });
@@ -371,6 +518,7 @@ async function init() {
   applyTranslations(document);
   updateLanguageToggleUI(currentLanguage);
   await loadActiveContext();
+  await updatePermissionState();
   await loadIdentities();
 }
 

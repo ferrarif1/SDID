@@ -92,6 +92,7 @@ Use the **Connect with SDID｜连接 SDID** button to trigger the approval flow.
 2. Enable **Developer mode** in the top right corner. / 在右上角启用 **开发者模式**。
 3. Choose **Load unpacked** and select the `extension` folder from this repository. / 点击 **加载已解压的扩展程序** 并选择仓库中的 `extension` 目录。
 4. Pin the “SDID Identity Manager” extension to your toolbar for quick access. / 将“SDID Identity Manager”扩展固定到浏览器工具栏，方便快速使用。
+5. Open the SDID popup on the dapp page and click **Enable for this site｜为此站点启用** to grant runtime access and inject the DID bridge immediately. / 在 dApp 页面点击 SDID 扩展图标，再按下 **Enable for this site｜为此站点启用** 按钮授予运行时权限，即刻注入 DID 桥接脚本。
 
 ## Managing identities｜身份管理
 

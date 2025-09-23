@@ -31,17 +31,5 @@
   "host_permissions": [
     "http://*/*",
     "https://*/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "contentScript.js"
-      ],
-      "run_at": "document_end"
-    }
   ]
 }

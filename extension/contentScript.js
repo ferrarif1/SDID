@@ -534,6 +534,8 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
     let settled = false;
     let detachLanguageListener = null;
+    let rememberDirty = false;
+    let lastSummaryIdentityId = null;
 
     const cleanup = (result, shouldReject = false) => {
       if (settled) {
@@ -562,9 +564,17 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       const identity = identities.find((item) => item.id === identityId);
       summary.innerHTML = '';
       if (!identity) {
-        rememberCheckbox.checked = true;
+        rememberDirty = false;
+        if (requestOrigin) {
+          rememberCheckbox.checked = true;
+        }
         rememberHint.textContent = '';
+        lastSummaryIdentityId = null;
         return;
+      }
+      const identityChanged = identity.id !== lastSummaryIdentityId;
+      if (identityChanged) {
+        rememberDirty = false;
       }
       const addLine = (text) => {
         const item = document.createElement('li');
@@ -590,11 +600,16 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
       if (requestOrigin) {
         const authorized = isOriginAuthorized(identity, requestOrigin);
-        rememberCheckbox.checked = !authorized;
+        if (!rememberDirty) {
+          rememberCheckbox.checked = true;
+        }
         rememberHint.textContent = authorized
           ? translateText('content.overlay.rememberAuthorized')
           : translateText('content.overlay.rememberHint');
+      } else {
+        rememberHint.textContent = '';
       }
+      lastSummaryIdentityId = identity.id;
     }
 
     function refreshSelectOptions() {
@@ -636,7 +651,12 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     initialFocusTarget.focus({ preventScroll: true });
 
     select.addEventListener('change', (event) => {
+      rememberDirty = false;
       updateSummary(event.target.value);
+    });
+
+    rememberCheckbox.addEventListener('change', () => {
+      rememberDirty = true;
     });
 
     const handleKeydown = (event) => {
@@ -888,6 +908,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'fill-identity') {
     const outcome = fillIdentity(message.identity);
     sendResponse(outcome);
+    return true;
+  }
+  if (message?.type === 'sdid-ping') {
+    sendResponse({ ok: true });
     return true;
   }
   return false;

@@ -152,6 +152,16 @@ const translations = {
         copyPublicKey: 'Copy public key',
         autofill: 'Autofill login',
         revokeSite: 'Revoke site'
+      },
+      permissions: {
+        title: 'Enable SDID on this site',
+        description: 'Allow SDID to inject the DID bridge so this dapp can connect.',
+        originLabel: 'Site:',
+        enable: 'Enable for this site',
+        success: 'SDID is enabled for this site.',
+        denied: 'Site access was not granted.',
+        failed: 'Unable to enable SDID on this site.',
+        noOrigin: 'This page does not support SDID site access.'
       }
     },
     content: {
@@ -333,6 +343,16 @@ const translations = {
         copyPublicKey: '复制公钥',
         autofill: '自动填充登录',
         revokeSite: '撤销站点'
+      },
+      permissions: {
+        title: '启用当前站点',
+        description: '允许扩展注入 SDID 桥接，以便此 dApp 可以连接。',
+        originLabel: '站点：',
+        enable: '为此站点启用',
+        success: '已为当前站点启用 SDID。',
+        denied: '未授予站点访问权限。',
+        failed: '无法为此站点启用 SDID。',
+        noOrigin: '此页面不支持站点授权。'
       }
     },
     content: {

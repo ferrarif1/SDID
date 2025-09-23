@@ -1,3 +1,12 @@
+import {
+  ready as i18nReady,
+  translate,
+  setLanguage,
+  getLanguage,
+  onLanguageChange,
+  applyTranslations
+} from '../shared/i18n.js';
+
 const IDENTITY_STORAGE_KEY = 'identities';
 
 const identityList = document.getElementById('identity-list');
@@ -6,8 +15,10 @@ const statusMessage = document.getElementById('status-message');
 const emptyState = document.getElementById('empty-state');
 const createFirstButton = document.getElementById('create-first');
 const manageButton = document.getElementById('open-options');
+const languageToggle = document.getElementById('language-toggle');
+const languageButtons = languageToggle ? Array.from(languageToggle.querySelectorAll('button')) : [];
 
-const t = (en, zh) => `${en}｜${zh}`;
+let currentLanguage = getLanguage();
 
 let identities = [];
 let filteredIdentities = [];
@@ -132,15 +143,15 @@ function renderIdentities() {
 
 function createIdentityCard(identity) {
   const container = document.createElement('article');
-
+  
   const title = document.createElement('h2');
-  title.textContent = identity.label || t('Untitled identity', '未命名身份');
+  title.textContent = identity.label || translate('common.untitledIdentity');
   container.appendChild(title);
 
   if (identity.domain) {
     const domain = document.createElement('p');
     domain.className = 'identity-domain';
-    domain.textContent = `${t('Trusted domain', '信任域名')}: ${identity.domain}`;
+    domain.textContent = `${translate('popup.meta.domain')} ${identity.domain}`;
     container.appendChild(domain);
   }
 
@@ -149,20 +160,20 @@ function createIdentityCard(identity) {
 
   if (identity.roles?.length) {
     const rolesChip = document.createElement('span');
-    rolesChip.textContent = `${t('Roles', '角色')}: ${identity.roles.join(', ')}`;
+    rolesChip.textContent = `${translate('popup.meta.roles')} ${identity.roles.join(', ')}`;
     meta.appendChild(rolesChip);
   }
 
   if (identity.did) {
     const didChip = document.createElement('span');
     didChip.className = 'mono';
-    didChip.textContent = `${t('DID', 'DID')}: ${identity.did}`;
+    didChip.textContent = `${translate('popup.meta.did')} ${identity.did}`;
     meta.appendChild(didChip);
   }
 
   if (identity.tags?.length) {
     const tagsChip = document.createElement('span');
-    tagsChip.textContent = `${t('Tags', '标签')}: ${identity.tags.join(', ')}`;
+    tagsChip.textContent = `${translate('popup.meta.tags')} ${identity.tags.join(', ')}`;
     meta.appendChild(tagsChip);
   }
 
@@ -182,8 +193,8 @@ function createIdentityCard(identity) {
     status.className = 'identity-status';
     const authorized = isAuthorizedForOrigin(identity, currentOrigin);
     status.textContent = authorized
-      ? t('Authorized for this site', '已授权当前站点')
-      : t('Not yet authorized for this site', '尚未授权当前站点');
+      ? translate('popup.status.authorized')
+      : translate('popup.status.unauthorized');
     status.dataset.state = authorized ? 'authorized' : 'unauthorized';
     container.appendChild(status);
   }
@@ -193,20 +204,20 @@ function createIdentityCard(identity) {
 
   const copyDidButton = document.createElement('button');
   copyDidButton.className = 'primary';
-  copyDidButton.textContent = t('Copy DID', '复制 DID');
+  copyDidButton.textContent = translate('popup.actions.copyDid');
   copyDidButton.addEventListener('click', () => copyDid(identity));
   actions.appendChild(copyDidButton);
 
   const copyKeyButton = document.createElement('button');
   copyKeyButton.className = 'secondary';
-  copyKeyButton.textContent = t('Copy public key', '复制公钥');
+  copyKeyButton.textContent = translate('popup.actions.copyPublicKey');
   copyKeyButton.addEventListener('click', () => copyPublicKey(identity));
   actions.appendChild(copyKeyButton);
 
   if (identity.username || identity.password) {
     const fillButton = document.createElement('button');
     fillButton.className = 'secondary';
-    fillButton.textContent = t('Autofill login', '自动填充登录');
+    fillButton.textContent = translate('popup.actions.autofill');
     fillButton.addEventListener('click', () => fillIdentity(identity));
     actions.appendChild(fillButton);
   }
@@ -214,7 +225,7 @@ function createIdentityCard(identity) {
   if (currentOrigin && isAuthorizedForOrigin(identity, currentOrigin)) {
     const revokeButton = document.createElement('button');
     revokeButton.className = 'danger';
-    revokeButton.textContent = t('Revoke site', '撤销站点');
+    revokeButton.textContent = translate('popup.actions.revokeSite');
     revokeButton.addEventListener('click', () => revokeCurrentOrigin(identity));
     actions.appendChild(revokeButton);
   }
@@ -240,19 +251,19 @@ async function revokeCurrentOrigin(identity) {
       return { ...item, authorizedOrigins: nextOrigins, updatedAt: new Date().toISOString() };
     });
     await chrome.storage.sync.set({ [IDENTITY_STORAGE_KEY]: updated });
-    setStatus(t('Revoked current site authorization.', '已撤销当前站点授权。'));
+    setStatus(translate('popup.status.revokedSuccess'));
     await loadIdentities();
   } catch (error) {
     console.error('Failed to revoke authorization', error);
-    setStatus(t('Unable to revoke authorization.', '无法撤销授权。'), true);
+    setStatus(translate('popup.status.revokedError'), true);
   }
 }
 
 async function fillIdentity(identity) {
-  setStatus(t('Filling identity…', '正在填充登录信息…'));
+  setStatus(translate('popup.status.filling'));
   try {
     if (!activeTabId) {
-      throw new Error(t('No active tab available.', '当前没有可用的浏览器标签页。'));
+      throw new Error(translate('popup.status.noTab'));
     }
     const response = await chrome.tabs.sendMessage(activeTabId, {
       type: 'fill-identity',
@@ -260,11 +271,12 @@ async function fillIdentity(identity) {
     });
     if (!response?.success) {
       throw new Error(
-        response?.messages?.join(' ') || t('Unable to fill identity on this page.', '无法在此页面填充身份信息。')
+        response?.messages?.join(' ') || translate('popup.status.unableFill')
       );
     }
     await chrome.runtime.sendMessage({ type: 'record-last-used', identityId: identity.id });
-    setStatus(t(`Filled ${identity.label}`, `已填充 ${identity.label}`));
+    const label = identity.label || translate('common.untitledIdentity');
+    setStatus(translate('popup.status.filled', { label }));
   } catch (error) {
     console.error('Fill identity failed', error);
     setStatus(error.message, true);
@@ -273,36 +285,36 @@ async function fillIdentity(identity) {
 
 async function copyDid(identity) {
   if (!identity.did) {
-    setStatus(t('This identity does not have a DID yet.', '该身份尚未生成 DID。'), true);
+    setStatus(translate('popup.status.noDid'), true);
     return;
   }
   try {
     await navigator.clipboard.writeText(identity.did);
-    setStatus(t('Copied DID to clipboard.', '已复制 DID。'));
+    setStatus(translate('popup.status.copiedDid'));
   } catch (error) {
     console.error('Copy DID failed', error);
-    setStatus(t('Unable to copy DID.', '无法复制 DID。'), true);
+    setStatus(translate('popup.status.copyDidError'), true);
   }
 }
 
 async function copyPublicKey(identity) {
   if (!identity.publicKeyJwk) {
-    setStatus(t('No public key available.', '没有可用的公钥。'), true);
+    setStatus(translate('popup.status.noPublicKey'), true);
     return;
   }
   try {
     const payload = JSON.stringify(identity.publicKeyJwk, null, 2);
     await navigator.clipboard.writeText(payload);
-    setStatus(t('Copied public key JSON.', '已复制公钥 JSON。'));
+    setStatus(translate('popup.status.copiedPublicKey'));
   } catch (error) {
     console.error('Copy public key failed', error);
-    setStatus(t('Unable to copy public key.', '无法复制公钥。'), true);
+    setStatus(translate('popup.status.copyPublicKeyError'), true);
   }
 }
 
 function setStatus(message, isError = false) {
   statusMessage.textContent = message || '';
-  statusMessage.style.color = isError ? '#fca5a5' : 'rgba(226, 232, 240, 0.9)';
+  statusMessage.dataset.state = isError ? 'error' : 'info';
 }
 
 searchInput.addEventListener('input', (event) => {
@@ -317,6 +329,34 @@ manageButton.addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
 });
 
+function updateLanguageToggleUI(language) {
+  languageButtons.forEach((button) => {
+    const value = button.dataset.language;
+    const isActive = value === language;
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    button.classList.toggle('active', isActive);
+  });
+}
+
+if (languageButtons.length) {
+  languageButtons.forEach((button) => {
+    button.addEventListener('click', async () => {
+      const nextLanguage = button.dataset.language;
+      if (!nextLanguage || nextLanguage === currentLanguage) {
+        return;
+      }
+      await setLanguage(nextLanguage);
+    });
+  });
+}
+
+onLanguageChange((lang) => {
+  currentLanguage = lang;
+  applyTranslations(document);
+  updateLanguageToggleUI(lang);
+  applyFilter(searchInput.value.trim());
+});
+
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'sync' && changes[IDENTITY_STORAGE_KEY]) {
     const next = changes[IDENTITY_STORAGE_KEY].newValue || [];
@@ -325,7 +365,15 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-(async () => {
+async function init() {
+  await i18nReady;
+  currentLanguage = getLanguage();
+  applyTranslations(document);
+  updateLanguageToggleUI(currentLanguage);
   await loadActiveContext();
   await loadIdentities();
-})();
+}
+
+init().catch((error) => {
+  console.error('Failed to initialize popup', error);
+});

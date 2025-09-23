@@ -11,7 +11,8 @@ SDID 是一个 Chrome 浏览器扩展，帮助团队在无密码或通行密钥�
 - **Role-aware metadata｜角色与标签元数据** – capture roles, domains, tags, and notes to describe responsibilities or access boundaries. / 记录角色、域名、标签和备注，清晰表达权限范围与使用说明。
 - **Secure storage & backup｜安全存储与备份** – all identity data (including keys) lives in encrypted Chrome sync storage with JSON import/export support. / 身份数据（包含密钥）保存在受加密保护的 Chrome 同步存储中，并支持 JSON 导入导出备份。
 - **Autofill fallback｜表单自动填充备援** – keep optional usernames/passwords for legacy systems and inject them into the current tab in one click. / 可为传统系统保存备用用户名与密码，并在当前页面一键填充。
-- **Bilingual UI｜双语界面** – every surface (popup, options, overlays, demo site) ships with coordinated English/Chinese text. / 弹窗、选项页、确认弹窗与演示站点均提供中英双语界面。
+- **Language toggle｜语言切换** – switch between English and Chinese across the popup, options page, and approval overlays with a single tap. / 弹窗、选项页与确认覆盖层均可一键切换中英文，界面即时更新。
+- **Minimal interface｜纯色线条界面** – refreshed visual styling inspired by Google/Apple design language: light surfaces, clean lines, and focused typography. / 参考 Google 与 Apple 的设计语言，界面以纯色与线条为主，排版更简洁、层次更清晰。
 - **Demo dApp｜演示应用** – the `/demo` folder hosts a ready-to-run site that requests SDID login and verifies the returned signature. / `/demo` 目录提供可直接运行的站点，用于发起 SDID 登录并验证返回的签名。
 
 ## Quick confirm login workflow｜快捷确认登录流程

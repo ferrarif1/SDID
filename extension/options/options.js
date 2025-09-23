@@ -1,3 +1,12 @@
+import {
+  ready as i18nReady,
+  translate,
+  setLanguage,
+  getLanguage,
+  onLanguageChange,
+  applyTranslations
+} from '../shared/i18n.js';
+
 const IDENTITY_STORAGE_KEY = 'identities';
 const KEY_ALGORITHM = { name: 'ECDSA', namedCurve: 'P-256' };
 
@@ -24,13 +33,16 @@ const privateKeyTextarea = document.getElementById('private-key');
 const generateDidButton = document.getElementById('generate-did');
 const togglePrivateButton = document.getElementById('toggle-private');
 const copyPrivateButton = document.getElementById('copy-private');
+const languageToggle = document.getElementById('language-toggle');
+const languageButtons = languageToggle ? Array.from(languageToggle.querySelectorAll('button')) : [];
 
-const t = (en, zh) => `${en}｜${zh}`;
+let currentLanguage = getLanguage();
 
 let identities = [];
 let editingId = null;
 let currentKeyPair = null;
-let isGenerating = false;
+let isGeneratingDid = false;
+let isSeedingDemo = false;
 
 function parseList(value) {
   return (value || '')
@@ -158,7 +170,7 @@ async function saveIdentities(nextIdentities) {
 
 function formatRoles(roles) {
   if (!roles?.length) {
-    return t('No role assigned', '未设置角色');
+    return translate('options.roles.none');
   }
   return roles.join(', ');
 }
@@ -179,8 +191,10 @@ function renderCollection() {
   collection.innerHTML = '';
   if (!identities.length) {
     const empty = document.createElement('li');
-    empty.className = 'identity-item';
-    empty.innerHTML = `<p>${t('No identities saved yet. Use the form above to add your first decentralized identity.', '还没有保存任何身份，请使用上方表单创建首个去中心化身份。')}</p>`;
+    empty.className = 'identity-item empty';
+    const message = document.createElement('p');
+    message.textContent = translate('options.collection.empty');
+    empty.appendChild(message);
     collection.appendChild(empty);
     return;
   }
@@ -191,14 +205,16 @@ function renderCollection() {
     item.dataset.id = identity.id;
 
     const header = document.createElement('header');
+    header.className = 'identity-header';
     const title = document.createElement('div');
+    title.className = 'identity-title';
     const heading = document.createElement('h3');
-    heading.textContent = identity.label || t('Untitled identity', '未命名身份');
+    heading.textContent = identity.label || translate('common.untitledIdentity');
     title.appendChild(heading);
 
     if (identity.domain) {
       const domain = document.createElement('p');
-      domain.textContent = `${t('Trusted domain', '信任域名')}: ${identity.domain}`;
+      domain.textContent = `${translate('options.collection.meta.domain')} ${identity.domain}`;
       title.appendChild(domain);
     }
     header.appendChild(title);
@@ -220,18 +236,18 @@ function renderCollection() {
     meta.className = 'meta-line';
 
     const roleLine = document.createElement('span');
-    roleLine.textContent = `${t('Roles', '角色')}: ${formatRoles(identity.roles)}`;
+    roleLine.textContent = `${translate('options.collection.meta.roles')} ${formatRoles(identity.roles)}`;
     meta.appendChild(roleLine);
 
     if (identity.did) {
       const didLine = document.createElement('span');
-      didLine.textContent = `${t('DID', 'DID')}: ${identity.did}`;
+      didLine.textContent = `${translate('options.collection.meta.did')} ${identity.did}`;
       meta.appendChild(didLine);
     }
 
     if (identity.username) {
       const usernameLine = document.createElement('span');
-      usernameLine.textContent = `${t('Username', '用户名')}: ${identity.username}`;
+      usernameLine.textContent = `${translate('options.collection.meta.username')} ${identity.username}`;
       meta.appendChild(usernameLine);
     }
 
@@ -247,7 +263,7 @@ function renderCollection() {
       const authorizedContainer = document.createElement('div');
       authorizedContainer.className = 'authorized-origins';
       const heading = document.createElement('h4');
-      heading.textContent = t('Authorized sites', '已授权站点');
+      heading.textContent = translate('options.collection.authorizedSites');
       authorizedContainer.appendChild(heading);
 
       const list = document.createElement('ul');
@@ -259,13 +275,13 @@ function renderCollection() {
           const info = document.createElement('span');
           info.textContent = entry.origin;
           const time = document.createElement('time');
-          time.textContent = `${t('Last used', '最近使用')}: ${formatDate(entry.lastUsedAt)}`;
+          time.textContent = `${translate('options.collection.lastUsed')} ${formatDate(entry.lastUsedAt)}`;
           info.appendChild(time);
           row.appendChild(info);
 
           const revokeButton = document.createElement('button');
           revokeButton.type = 'button';
-          revokeButton.textContent = t('Revoke', '撤销');
+          revokeButton.textContent = translate('options.collection.revoke');
           revokeButton.addEventListener('click', () => revokeAuthorization(identity.id, entry.origin));
           row.appendChild(revokeButton);
 
@@ -280,20 +296,20 @@ function renderCollection() {
 
     const editButton = document.createElement('button');
     editButton.type = 'button';
-    editButton.textContent = t('Edit', '编辑');
+    editButton.textContent = translate('options.collection.edit');
     editButton.addEventListener('click', () => startEdit(identity.id));
     actions.appendChild(editButton);
 
     const duplicateButton = document.createElement('button');
     duplicateButton.type = 'button';
-    duplicateButton.textContent = t('Duplicate', '复制');
+    duplicateButton.textContent = translate('options.collection.duplicate');
     duplicateButton.addEventListener('click', () => duplicateIdentity(identity.id));
     actions.appendChild(duplicateButton);
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.classList.add('danger');
-    deleteButton.textContent = t('Delete', '删除');
+    deleteButton.textContent = translate('options.collection.delete');
     deleteButton.addEventListener('click', () => deleteIdentity(identity.id));
     actions.appendChild(deleteButton);
 
@@ -318,40 +334,40 @@ function updateKeyDisplay(keyPair) {
 function setPrivateVisibility(visible) {
   if (!privateKeyTextarea.value) {
     privateKeyTextarea.dataset.hidden = 'true';
-    togglePrivateButton.textContent = t('Show', '显示');
+    togglePrivateButton.textContent = translate('common.show');
     return;
   }
   if (visible) {
     privateKeyTextarea.dataset.hidden = 'false';
-    togglePrivateButton.textContent = t('Hide', '隐藏');
+    togglePrivateButton.textContent = translate('common.hide');
   } else {
     privateKeyTextarea.dataset.hidden = 'true';
-    togglePrivateButton.textContent = t('Show', '显示');
+    togglePrivateButton.textContent = translate('common.show');
   }
 }
 
 async function generateDid() {
-  if (isGenerating) {
+  if (isGeneratingDid) {
     return;
   }
   try {
-    isGenerating = true;
+    isGeneratingDid = true;
     generateDidButton.disabled = true;
-    generateDidButton.textContent = t('Generating…', '正在生成…');
+    generateDidButton.textContent = translate('common.generating');
     const keyPair = await crypto.subtle.generateKey(KEY_ALGORITHM, true, ['sign', 'verify']);
     const publicKeyJwk = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
     const privateKeyJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
     const did = `did:sdid:${publicKeyJwk.x}.${publicKeyJwk.y}`;
     currentKeyPair = { did, publicKeyJwk, privateKeyJwk };
     updateKeyDisplay(currentKeyPair);
-    notify(t('Generated new DID and key pair.', '已生成新的 DID 与密钥对。'));
+    notify(translate('options.notifications.generated'));
   } catch (error) {
     console.error('DID generation failed', error);
-    notify(t('Failed to generate DID. Please ensure Web Crypto is available.', '无法生成 DID，请确认浏览器支持 Web Crypto。'), true);
+    notify(translate('options.notifications.generateFailed'), true);
   } finally {
-    isGenerating = false;
+    isGeneratingDid = false;
     generateDidButton.disabled = false;
-    generateDidButton.textContent = t('Generate DID', '生成 DID');
+    generateDidButton.textContent = translate('common.generateDid');
   }
 }
 
@@ -368,7 +384,7 @@ function startEdit(identityId) {
     return;
   }
   editingId = identity.id;
-  formTitle.textContent = t('Edit DID identity', '编辑 DID 身份');
+  formTitle.textContent = translate('options.form.editTitle');
   cancelEditButton.hidden = false;
 
   labelInput.value = identity.label;
@@ -401,10 +417,12 @@ async function duplicateIdentity(identityId) {
     const privateKeyJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
     const did = `did:sdid:${publicKeyJwk.x}.${publicKeyJwk.y}`;
     const now = new Date().toISOString();
+    const copySuffix = translate('options.collection.copySuffix');
+    const baseLabel = original.label || translate('common.untitledIdentity');
     const copy = {
       ...original,
       id: crypto.randomUUID(),
-      label: `${original.label} (${t('copy', '副本').replace('｜', ' / ')})`,
+      label: `${baseLabel}${copySuffix}`,
       did,
       publicKeyJwk,
       privateKeyJwk,
@@ -414,10 +432,10 @@ async function duplicateIdentity(identityId) {
     };
     const next = [...identities, copy];
     await saveIdentities(next);
-    notify(t('Duplicated identity with new DID.', '已复制身份并生成新的 DID。'));
+    notify(translate('options.notifications.duplicateSuccess'));
   } catch (error) {
     console.error('Duplicate identity failed', error);
-    notify(t('Unable to duplicate identity.', '无法复制该身份。'), true);
+    notify(translate('options.notifications.duplicateError'), true);
   }
 }
 
@@ -427,7 +445,7 @@ async function deleteIdentity(identityId) {
   if (editingId === identityId) {
     resetForm();
   }
-  notify(t('Deleted identity.', '已删除身份。'));
+  notify(translate('options.notifications.deleted'));
 }
 
 async function revokeAuthorization(identityId, origin) {
@@ -446,7 +464,7 @@ async function revokeAuthorization(identityId, origin) {
     };
   });
   await saveIdentities(next);
-  notify(t('Revoked authorization.', '已撤销授权。'));
+  notify(translate('options.notifications.revoked'));
 }
 
 function resetForm() {
@@ -454,7 +472,7 @@ function resetForm() {
   currentKeyPair = null;
   form.reset();
   updateKeyDisplay(null);
-  formTitle.textContent = t('Create DID identity', '创建 DID 身份');
+  formTitle.textContent = translate('options.form.createTitle');
   cancelEditButton.hidden = true;
 }
 
@@ -466,20 +484,19 @@ function notify(message, isError = false) {
     document.body.appendChild(banner);
   }
   banner.textContent = message;
-  banner.style.background = isError ? 'rgba(248, 113, 113, 0.25)' : 'rgba(45, 212, 191, 0.3)';
-  banner.style.color = '#f8fafc';
   banner.setAttribute('role', 'status');
   banner.setAttribute('aria-live', 'polite');
+  banner.classList.toggle('is-error', Boolean(isError));
 
   banner.classList.add('visible');
-  setTimeout(() => banner.classList.remove('visible'), 3500);
+  setTimeout(() => banner.classList.remove('visible'), 3200);
 }
 
 function validateKeyPair() {
   if (currentKeyPair?.did && currentKeyPair?.publicKeyJwk && currentKeyPair?.privateKeyJwk) {
     return true;
   }
-  notify(t('Generate a DID before saving.', '请先生成 DID 再保存。'), true);
+  notify(translate('options.notifications.requireDidBeforeSave'), true);
   generateDidButton.focus();
   return false;
 }
@@ -509,7 +526,7 @@ async function handleSubmit(event) {
   event.preventDefault();
   if (!labelInput.value.trim()) {
     labelInput.focus();
-    notify(t('Display name is required.', '显示名称不能为空。'), true);
+    notify(translate('options.notifications.displayNameRequired'), true);
     return;
   }
   if (!validateKeyPair()) {
@@ -521,42 +538,42 @@ async function handleSubmit(event) {
     ? identities.map((item) => (item.id === editingId ? storedIdentity : item))
     : [...identities, storedIdentity];
   await saveIdentities(next);
-  notify(t('Identity saved.', '身份已保存。'));
+  notify(translate('options.notifications.saved'));
   resetForm();
 }
 
 async function createDemoIdentities() {
   if (identities.length) {
-    notify(t('Clear existing identities before creating demos.', '请先清空现有身份后再生成示例数据。'), true);
+    notify(translate('options.notifications.clearBeforeDemo'), true);
     return;
   }
-  if (isGenerating) {
+  if (isSeedingDemo) {
     return;
   }
-  isGenerating = true;
+  isSeedingDemo = true;
   createDemoButton.disabled = true;
-  createDemoButton.textContent = t('Generating…', '正在生成…');
+  createDemoButton.textContent = translate('common.generating');
   try {
     const templates = [
       {
-        label: 'Operations Admin',
+        label: translate('options.demo.labels.operationsAdmin'),
         roles: ['Admin', 'Approver'],
         domain: 'https://console.example.com',
-        notes: t('Full access to internal console with approval powers.', '拥有内部控制台完全访问权限，可审批关键操作。'),
+        notes: translate('options.demo.notes.operationsAdmin'),
         tags: ['core', 'operations']
       },
       {
-        label: 'Finance Signer',
+        label: translate('options.demo.labels.financeSigner'),
         roles: ['Finance', 'Signer'],
         domain: 'https://billing.example.com',
-        notes: t('Use for invoice approvals and settlement workflows.', '用于发票审批与结算流程。'),
+        notes: translate('options.demo.notes.financeSigner'),
         tags: ['finance']
       },
       {
-        label: 'Developer Sandbox',
+        label: translate('options.demo.labels.developerSandbox'),
         roles: ['Developer'],
         domain: 'https://sandbox.example.dev',
-        notes: t('Grants access to pre-production integrations.', '用于访问预生产集成环境。'),
+        notes: translate('options.demo.notes.developerSandbox'),
         tags: ['sandbox', 'dev'],
         authorizedOrigins: [
           {
@@ -593,29 +610,27 @@ async function createDemoIdentities() {
       });
     }
     await saveIdentities(demoIdentities);
-    notify(t('Demo identities created.', '已生成示例身份。'));
+    notify(translate('options.notifications.demoCreated'));
   } catch (error) {
     console.error('Create demo identities failed', error);
-    notify(t('Unable to create demo identities.', '无法生成示例身份。'), true);
+    notify(translate('options.notifications.demoFailed'), true);
   } finally {
-    isGenerating = false;
+    isSeedingDemo = false;
     createDemoButton.disabled = false;
-    createDemoButton.textContent = t('Create demo identities', '生成示例身份');
+    createDemoButton.textContent = translate('options.actions.createDemo');
   }
 }
 
 function handleExport() {
   if (!identities.length) {
-    notify(t('No identities to export yet.', '暂时没有可导出的身份。'));
+    notify(translate('options.notifications.noExport'));
     return;
   }
   const payload = JSON.stringify(identities.map(buildStoredIdentity), null, 2);
   navigator.clipboard
     .writeText(payload)
-    .then(() => notify(t('Copied JSON to clipboard.', '已复制 JSON 到剪贴板。')))
-    .catch(() =>
-      notify(t('Unable to copy JSON. Please allow clipboard permissions.', '无法复制 JSON，请允许剪贴板权限。'), true)
-    );
+    .then(() => notify(translate('options.notifications.copyJson')))
+    .catch(() => notify(translate('options.notifications.copyJsonError'), true));
 }
 
 function handleImport(event) {
@@ -634,10 +649,10 @@ function handleImport(event) {
         .map(normalizeIdentity)
         .filter(Boolean);
       await saveIdentities(sanitized);
-      notify(t(`Imported ${sanitized.length} identities.`, `已导入 ${sanitized.length} 个身份。`));
+      notify(translate('options.notifications.imported', { count: sanitized.length }));
     } catch (error) {
       console.error('Import failed', error);
-      notify(t('Import failed. Please select a valid JSON export.', '导入失败，请选择有效的 JSON 备份。'), true);
+      notify(translate('options.notifications.importFailed'), true);
     } finally {
       event.target.value = '';
     }
@@ -647,7 +662,7 @@ function handleImport(event) {
 
 function handleClearAll() {
   if (typeof confirmClearDialog.showModal !== 'function') {
-    if (window.confirm(t('Delete all identities?', '确定删除所有身份？'))) {
+    if (window.confirm(translate('options.confirmClear.title'))) {
       saveIdentities([]);
       resetForm();
     }
@@ -679,14 +694,64 @@ togglePrivateButton.addEventListener('click', () => {
 });
 copyPrivateButton.addEventListener('click', () => {
   if (!privateKeyTextarea.value) {
-    notify(t('Generate a DID first.', '请先生成 DID。'), true);
+    notify(translate('options.notifications.needDidFirst'), true);
     return;
   }
   navigator.clipboard
     .writeText(privateKeyTextarea.value)
-    .then(() => notify(t('Copied private key to clipboard.', '已复制私钥。')))
-    .catch(() => notify(t('Unable to copy private key.', '无法复制私钥。'), true));
+    .then(() => notify(translate('options.notifications.copyPrivateKey')))
+    .catch(() => notify(translate('options.notifications.copyPrivateKeyError'), true));
 });
+
+function updateLanguageToggleUI(language) {
+  languageButtons.forEach((button) => {
+    const value = button.dataset.language;
+    const isActive = value === language;
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    button.classList.toggle('active', isActive);
+  });
+}
+
+function refreshDynamicText() {
+  formTitle.textContent = editingId ? translate('options.form.editTitle') : translate('options.form.createTitle');
+  generateDidButton.textContent = isGeneratingDid
+    ? translate('common.generating')
+    : translate('common.generateDid');
+  createDemoButton.textContent = isSeedingDemo
+    ? translate('common.generating')
+    : translate('options.actions.createDemo');
+  const isPrivateVisible = privateKeyTextarea.dataset.hidden === 'false';
+  setPrivateVisibility(isPrivateVisible);
+}
+
+if (languageButtons.length) {
+  languageButtons.forEach((button) => {
+    button.addEventListener('click', async () => {
+      const nextLanguage = button.dataset.language;
+      if (!nextLanguage || nextLanguage === currentLanguage) {
+        return;
+      }
+      await setLanguage(nextLanguage);
+    });
+  });
+}
+
+onLanguageChange((lang) => {
+  currentLanguage = lang;
+  applyTranslations(document);
+  updateLanguageToggleUI(lang);
+  refreshDynamicText();
+  renderCollection();
+});
+
+async function init() {
+  await i18nReady;
+  currentLanguage = getLanguage();
+  applyTranslations(document);
+  updateLanguageToggleUI(currentLanguage);
+  refreshDynamicText();
+  await loadIdentities();
+}
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'sync' && changes[IDENTITY_STORAGE_KEY]) {
@@ -698,4 +763,6 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-loadIdentities();
+init().catch((error) => {
+  console.error('Failed to initialize options page', error);
+});

@@ -9,131 +9,160 @@
   <body>
     <main class="container">
       <header class="page-header">
-        <div>
-          <h1>SDID Identity Manager｜SDID 身份管理器</h1>
-          <p class="subtitle">
-            Create decentralized identities, manage roles, and approve dapp logins in one place.｜集中创建去中心化身份、管理角色并审批去中心化应用的登录请求。
-          </p>
+        <div class="page-title">
+          <h1 data-i18n="common.appName"></h1>
+          <p class="subtitle" data-i18n="options.subtitle"></p>
         </div>
-        <button id="create-demo" type="button">Create demo identities｜生成示例身份</button>
+        <div class="header-actions">
+          <div class="language-switch" role="group" data-i18n="common.languageLabel" data-i18n-target="aria-label">
+            <span class="language-label" data-i18n="common.languageLabel"></span>
+            <div class="language-buttons" id="language-toggle">
+              <button type="button" data-language="en" aria-pressed="false">EN</button>
+              <button type="button" data-language="zh" aria-pressed="false">中文</button>
+            </div>
+          </div>
+          <button id="create-demo" type="button" class="ghost" data-i18n="options.actions.createDemo"></button>
+        </div>
       </header>
 
       <section class="panel">
-        <h2 id="form-title">Create DID identity｜创建 DID 身份</h2>
+        <h2 id="form-title" data-i18n="options.form.createTitle"></h2>
         <form id="identity-form" autocomplete="off">
           <div class="field-group">
-            <label for="label">Display name｜显示名称</label>
-            <input id="label" name="label" required placeholder="e.g. Operations Admin / 示例：运营管理员" />
+            <label for="label" data-i18n="options.form.displayName"></label>
+            <input
+              id="label"
+              name="label"
+              required
+              data-i18n="options.form.displayNamePlaceholder"
+              data-i18n-target="placeholder"
+            />
           </div>
 
           <div class="field-grid">
             <div class="field-group">
-              <label for="roles">Roles｜角色</label>
+              <label for="roles" data-i18n="options.form.roles"></label>
               <input
                 id="roles"
                 name="roles"
-                placeholder="Comma separated roles / 多个角色请用逗号分隔"
+                data-i18n="options.form.rolesPlaceholder"
+                data-i18n-target="placeholder"
               />
-              <p class="field-hint">Roles help dapps determine permissions.｜角色用于帮助去中心化应用判断权限范围。</p>
+              <p class="field-hint" data-i18n="options.form.rolesHint"></p>
             </div>
             <div class="field-group">
-              <label for="domain">Trusted domain｜信任域名</label>
-              <input id="domain" name="domain" placeholder="https://app.example.com" />
-              <p class="field-hint">Optional hint about where this identity is used.｜可选：用于说明身份适用的域名。</p>
+              <label for="domain" data-i18n="options.form.domain"></label>
+              <input
+                id="domain"
+                name="domain"
+                data-i18n="options.form.domainPlaceholder"
+                data-i18n-target="placeholder"
+              />
+              <p class="field-hint" data-i18n="options.form.domainHint"></p>
             </div>
           </div>
 
           <div class="field-grid">
             <div class="field-group">
-              <label for="username">Username / Email｜用户名 / 邮箱</label>
-              <input id="username" name="username" placeholder="Optional fallback login name / 可选备用登录名" />
+              <label for="username" data-i18n="options.form.username"></label>
+              <input
+                id="username"
+                name="username"
+                data-i18n="options.form.usernamePlaceholder"
+                data-i18n-target="placeholder"
+              />
             </div>
             <div class="field-group">
-              <label for="password">Password / Passcode｜密码 / 口令</label>
-              <input id="password" name="password" placeholder="Optional fallback secret / 可选备用口令" />
+              <label for="password" data-i18n="options.form.password"></label>
+              <input
+                id="password"
+                name="password"
+                data-i18n="options.form.passwordPlaceholder"
+                data-i18n-target="placeholder"
+              />
             </div>
           </div>
 
           <div class="field-group">
-            <label for="tags">Tags｜标签</label>
-            <input id="tags" name="tags" placeholder="Comma separated tags / 使用逗号分隔多个标签" />
+            <label for="tags" data-i18n="options.form.tags"></label>
+            <input id="tags" name="tags" data-i18n="options.form.tagsPlaceholder" data-i18n-target="placeholder" />
           </div>
 
           <div class="field-group">
-            <label for="notes">Notes｜备注</label>
+            <label for="notes" data-i18n="options.form.notes"></label>
             <textarea
               id="notes"
               name="notes"
               rows="3"
-              placeholder="Add approval rules, recovery tips, or reminders.｜可记录审批规则、恢复提示或其他备注。"
+              data-i18n="options.form.notesPlaceholder"
+              data-i18n-target="placeholder"
             ></textarea>
           </div>
 
           <div class="field-group key-pair-group">
             <div class="field-group">
-              <label for="did">Decentralized ID (DID)｜去中心化身份标识</label>
+              <label for="did" data-i18n="options.form.didLabel"></label>
               <div class="did-row">
                 <input
                   id="did"
                   name="did"
                   readonly
-                  placeholder="Generate a DID before saving｜保存前请生成 DID"
+                  data-i18n="options.form.didPlaceholder"
+                  data-i18n-target="placeholder"
                 />
-                <button id="generate-did" type="button" class="secondary">Generate DID｜生成 DID</button>
+                <button id="generate-did" type="button" class="secondary" data-i18n="common.generateDid"></button>
               </div>
-              <p class="field-hint">
-                Generates a new elliptic-curve key pair and DID for signing login requests.｜生成新的椭圆曲线密钥对和 DID，用于签名登录请求。
-              </p>
+              <p class="field-hint" data-i18n="options.form.didHint"></p>
             </div>
             <div class="key-columns">
               <div class="field-group">
-                <label for="public-key">Public key (JWK)｜公钥（JWK）</label>
+                <label for="public-key" data-i18n="options.form.publicKeyLabel"></label>
                 <textarea
                   id="public-key"
                   rows="4"
                   readonly
-                  placeholder="Generate DID to view public key｜生成 DID 后可查看公钥"
+                  data-i18n="options.form.publicKeyPlaceholder"
+                  data-i18n-target="placeholder"
                 ></textarea>
               </div>
               <div class="field-group secret-group">
-                <label for="private-key">Private key (JWK)｜私钥（JWK）</label>
+                <label for="private-key" data-i18n="options.form.privateKeyLabel"></label>
                 <div class="secret-control">
                   <textarea
                     id="private-key"
                     rows="4"
                     readonly
                     data-hidden="true"
-                    placeholder="Generate DID to view private key｜生成 DID 后可查看私钥"
+                    data-i18n="options.form.privateKeyPlaceholder"
+                    data-i18n-target="placeholder"
                   ></textarea>
                   <div class="secret-buttons">
-                    <button id="toggle-private" type="button" class="link">Show｜显示</button>
-                    <button id="copy-private" type="button" class="link">Copy｜复制</button>
+                    <button id="toggle-private" type="button" class="link" data-i18n="common.show"></button>
+                    <button id="copy-private" type="button" class="link" data-i18n="common.copy"></button>
                   </div>
                 </div>
-                <p class="field-hint">
-                  Keep the private key secure and never share it with untrusted parties.｜请妥善保管私钥，勿向不可信的对象泄露。
-                </p>
+                <p class="field-hint" data-i18n="options.form.privateKeyHint"></p>
               </div>
             </div>
           </div>
 
           <div class="form-actions">
-            <button id="cancel-edit" type="button" hidden>Cancel｜取消</button>
-            <button class="primary" type="submit">Save identity｜保存身份</button>
+            <button id="cancel-edit" type="button" class="ghost" hidden data-i18n="common.cancel"></button>
+            <button class="primary" type="submit" data-i18n="common.saveIdentity"></button>
           </div>
         </form>
       </section>
 
       <section class="panel">
         <div class="panel-header">
-          <h2>Saved identities｜已保存的身份</h2>
+          <h2 data-i18n="options.collection.title"></h2>
           <div class="toolbar">
-            <button id="export" type="button">Export JSON｜导出 JSON</button>
+            <button id="export" type="button" class="ghost" data-i18n="options.actions.exportJson"></button>
             <label class="import-button">
               <input id="import-file" type="file" accept="application/json" hidden />
-              <span>Import JSON｜导入 JSON</span>
+              <span data-i18n="options.actions.importJson"></span>
             </label>
-            <button id="clear-storage" type="button" class="danger">Clear all｜清空全部</button>
+            <button id="clear-storage" type="button" class="danger" data-i18n="options.actions.clearAll"></button>
           </div>
         </div>
         <ul id="identity-collection" class="identity-collection" aria-live="polite"></ul>
@@ -142,11 +171,11 @@
 
     <dialog id="confirm-clear">
       <form method="dialog">
-        <h3>Remove all identities?｜确认删除所有身份？</h3>
-        <p>This cannot be undone. Make sure you exported a backup first.｜该操作无法撤销，请确保已提前导出备份。</p>
+        <h3 data-i18n="options.confirmClear.title"></h3>
+        <p data-i18n="options.confirmClear.message"></p>
         <div class="dialog-actions">
-          <button value="cancel">Cancel｜取消</button>
-          <button value="confirm" class="danger">Delete all｜全部删除</button>
+          <button value="cancel" data-i18n="options.confirmClear.cancel"></button>
+          <button value="confirm" class="danger" data-i18n="options.confirmClear.confirm"></button>
         </div>
       </form>
     </dialog>

@@ -10,32 +10,36 @@
     <header class="app-header">
       <div class="title-group">
         <h1>SDID</h1>
-        <p class="app-subtitle">Decentralized Identity Vault｜去中心化身份保管库</p>
+        <p class="app-subtitle" data-i18n="popup.subtitle"></p>
       </div>
-      <button
-        id="open-options"
-        title="Manage identities｜管理身份"
-        aria-label="Manage identities｜管理身份"
-      >
-        Manage｜管理
-      </button>
+      <div class="header-actions">
+        <div class="language-buttons" id="language-toggle" role="group" data-i18n="common.languageLabel" data-i18n-target="aria-label">
+          <button type="button" data-language="en" aria-pressed="false">EN</button>
+          <button type="button" data-language="zh" aria-pressed="false">中文</button>
+        </div>
+        <button
+          id="open-options"
+          class="ghost"
+          data-i18n="popup.actions.manage"
+          data-i18n-target="text,title,aria-label"
+        ></button>
+      </div>
     </header>
 
     <main>
       <label class="search">
-        <span class="search-label">Find DID identity｜搜索 DID 身份</span>
+        <span class="search-label" data-i18n="popup.searchLabel"></span>
         <input
           id="search"
           type="search"
-          placeholder="Search by name, DID, role or domain / 支持名称、DID、角色或域名搜索"
+          data-i18n="popup.searchPlaceholder"
+          data-i18n-target="placeholder"
         />
       </label>
 
       <section id="empty-state" hidden>
-        <p class="empty-message">
-          No decentralized identities yet. Create one to start approving dapp logins.｜还没有去中心化身份，请先创建以便审批 dapp 登录请求。
-        </p>
-        <button id="create-first" class="primary">Create identity｜新建身份</button>
+        <p class="empty-message" data-i18n="popup.empty"></p>
+        <button id="create-first" class="primary" data-i18n="popup.createFirst"></button>
       </section>
 
       <ul id="identity-list" class="identity-list"></ul>

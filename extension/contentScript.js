@@ -7,7 +7,72 @@ const LOGIN_OVERLAY_ID = 'sdid-login-overlay';
 const usernameKeywords = ['user', 'email', 'login', 'account', 'identifier', 'phone'];
 const passwordKeywords = ['pass', 'password', 'secret', 'pin', 'code'];
 
-const t = (en, zh) => `${en}｜${zh}`;
+const fallbackTranslations = {
+  'content.errors.missingIdentity': 'Missing identity payload.',
+  'content.errors.usernameFillFailed': 'Unable to populate username field.',
+  'content.errors.usernameMissing': 'No username field detected on this page.',
+  'content.errors.passwordFillFailed': 'Unable to populate password field.',
+  'content.errors.passwordMissing': 'No password field detected on this page.',
+  'content.errors.noCredentials': 'Identity does not contain username or password values to fill.',
+  'content.overlay.title': 'SDID login request',
+  'content.overlay.origin': 'Origin:',
+  'content.overlay.chooseIdentity': 'Choose identity',
+  'content.overlay.remember': 'Remember this site for one-click approvals',
+  'content.overlay.rememberAuthorized': 'This site is already authorized. Uncheck to require approval next time.',
+  'content.overlay.rememberHint': 'Keep this checked to approve future logins instantly.',
+  'content.overlay.summaryIdentity': 'Identity:',
+  'content.overlay.summaryDid': 'DID:',
+  'content.overlay.summaryRoles': 'Roles:',
+  'content.overlay.summaryDomain': 'Trusted domain:',
+  'content.overlay.summaryUsername': 'Username:',
+  'content.overlay.summaryNotes': 'Notes:',
+  'content.errors.alreadyPending': 'Another login request is already pending. Please complete it first.',
+  'content.errors.noIdentities': 'No eligible DID identities are saved in SDID.',
+  'content.errors.identityNotFound': 'The selected identity could not be located.',
+  'content.errors.loginCancelled': 'Login request cancelled by user.',
+  'content.errors.loginFailed': 'Login request failed.',
+  'common.cancel': 'Cancel',
+  'common.confirm': 'Confirm',
+  'common.untitledIdentity': 'Untitled identity'
+};
+
+let i18nApi = null;
+let currentLanguage = 'en';
+let supportedLanguages = ['en', 'zh'];
+
+function formatTemplate(template, replacements = {}) {
+  if (!replacements || typeof replacements !== 'object') {
+    return template;
+  }
+  return template.replace(/\{(\w+)\}/g, (match, token) => {
+    return token in replacements ? String(replacements[token]) : match;
+  });
+}
+
+let translateText = (key, replacements) => {
+  const template = fallbackTranslations[key] || key;
+  return formatTemplate(template, replacements);
+};
+
+(async () => {
+  try {
+    const i18nModule = await import(chrome.runtime.getURL('shared/i18n.js'));
+    await i18nModule.ready;
+    i18nApi = i18nModule;
+    translateText = (key, replacements) => i18nModule.translate(key, replacements);
+    if (Array.isArray(i18nModule.SUPPORTED_LANGUAGES) && i18nModule.SUPPORTED_LANGUAGES.length) {
+      supportedLanguages = i18nModule.SUPPORTED_LANGUAGES;
+    }
+    if (typeof i18nModule.getLanguage === 'function') {
+      currentLanguage = i18nModule.getLanguage();
+    }
+    i18nModule.onLanguageChange((lang) => {
+      currentLanguage = lang;
+    });
+  } catch (error) {
+    console.warn('SDID i18n module unavailable in content script', error);
+  }
+})();
 
 let loginOverlayVisible = false;
 
@@ -58,7 +123,7 @@ function fillElementValue(element, value) {
 
 function fillIdentity(identity) {
   if (!identity) {
-    return { success: false, reason: t('Missing identity payload.', '缺少身份数据。') };
+    return { success: false, reason: translateText('content.errors.missingIdentity') };
   }
 
   const result = {
@@ -75,10 +140,10 @@ function fillIdentity(identity) {
     if (usernameField) {
       result.filledUsername = fillElementValue(usernameField, identity.username);
       if (!result.filledUsername) {
-        result.messages.push(t('Unable to populate username field.', '无法填充用户名输入框。'));
+        result.messages.push(translateText('content.errors.usernameFillFailed'));
       }
     } else {
-      result.messages.push(t('No username field detected on this page.', '未在页面上检测到用户名输入框。'));
+      result.messages.push(translateText('content.errors.usernameMissing'));
     }
   }
 
@@ -89,17 +154,17 @@ function fillIdentity(identity) {
     if (passwordField) {
       result.filledPassword = fillElementValue(passwordField, identity.password);
       if (!result.filledPassword) {
-        result.messages.push(t('Unable to populate password field.', '无法填充密码输入框。'));
+        result.messages.push(translateText('content.errors.passwordFillFailed'));
       }
     } else {
-      result.messages.push(t('No password field detected on this page.', '未在页面上检测到密码输入框。'));
+      result.messages.push(translateText('content.errors.passwordMissing'));
     }
   }
 
   if (!identity.username && !identity.password) {
     result.success = false;
     result.messages.push(
-      t('Identity does not contain username or password values to fill.', '该身份未包含可用于填充的用户名或密码。')
+      translateText('content.errors.noCredentials')
     );
   }
 
@@ -289,6 +354,80 @@ async function signChallenge(identity, challenge) {
   return bufferToBase64(signature);
 }
 
+function getLanguageDisplayName(language) {
+  if (i18nApi?.translate) {
+    if (language === 'en') {
+      return i18nApi.translate('common.languageEnglish', {}, 'en');
+    }
+    if (language === 'zh') {
+      return i18nApi.translate('common.languageChinese', {}, 'zh');
+    }
+  }
+  if (language === 'zh') {
+    return '中文';
+  }
+  return language ? language.toUpperCase() : '';
+}
+
+function createOverlayLanguageSwitch() {
+  if (!i18nApi?.setLanguage) {
+    return null;
+  }
+  const languages = supportedLanguages.filter(Boolean);
+  if (languages.length <= 1) {
+    return null;
+  }
+
+  const container = document.createElement('div');
+  container.className = 'sdid-language-switch';
+  container.setAttribute('role', 'group');
+
+  const buttons = new Map();
+
+  const setActive = (lang) => {
+    buttons.forEach((button, code) => {
+      const isActive = code === lang;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  };
+
+  const setLabels = () => {
+    container.setAttribute('aria-label', translateText('common.languageLabel'));
+    buttons.forEach((button, code) => {
+      button.textContent = getLanguageDisplayName(code);
+    });
+  };
+
+  languages.forEach((lang) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.language = lang;
+    button.textContent = getLanguageDisplayName(lang);
+    button.addEventListener('click', () => {
+      const activeLanguage = typeof i18nApi.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
+      if (lang === activeLanguage) {
+        return;
+      }
+      i18nApi.setLanguage(lang).catch((error) => {
+        console.warn('Unable to switch SDID language', error);
+      });
+    });
+    container.appendChild(button);
+    buttons.set(lang, button);
+  });
+
+  const activeLanguage = typeof i18nApi.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
+  setActive(activeLanguage);
+  setLabels();
+
+  return {
+    container,
+    setActive,
+    setLabels
+  };
+}
+
 function createLoginOverlay(identities, initialId, requestOrigin, requestMessage) {
   return new Promise((resolve, reject) => {
     const overlay = document.createElement('div');
@@ -299,11 +438,19 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     dialog.className = 'sdid-login-dialog';
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
-    dialog.setAttribute('aria-label', t('SDID login request', 'SDID 登录请求'));
+
+    const header = document.createElement('div');
+    header.className = 'sdid-login-header';
 
     const title = document.createElement('h2');
-    title.textContent = t('SDID login request', 'SDID 登录请求');
-    dialog.appendChild(title);
+    header.appendChild(title);
+
+    const languageSwitchControl = createOverlayLanguageSwitch();
+    if (languageSwitchControl) {
+      header.appendChild(languageSwitchControl.container);
+    }
+
+    dialog.appendChild(header);
 
     if (requestMessage) {
       const message = document.createElement('p');
@@ -312,10 +459,10 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       dialog.appendChild(message);
     }
 
+    let originText = null;
     if (requestOrigin) {
-      const originText = document.createElement('p');
+      originText = document.createElement('p');
       originText.className = 'sdid-login-origin';
-      originText.textContent = `${t('Origin', '请求来源')}: ${requestOrigin}`;
       dialog.appendChild(originText);
     }
 
@@ -323,14 +470,13 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     selectLabel.className = 'sdid-login-select';
 
     const selectTitle = document.createElement('span');
-    selectTitle.textContent = t('Choose identity', '选择登录身份');
     selectLabel.appendChild(selectTitle);
 
     const select = document.createElement('select');
     identities.forEach((identity) => {
       const option = document.createElement('option');
       option.value = identity.id;
-      option.textContent = identity.label || identity.username || t('Untitled identity', '未命名身份');
+      option.textContent = identity.label || identity.username || translateText('common.untitledIdentity');
       if (identity.id === initialId) {
         option.selected = true;
       }
@@ -358,11 +504,11 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     rememberWrapper.appendChild(rememberCheckbox);
 
     const rememberText = document.createElement('span');
-    rememberText.textContent = t('Remember this site for one-click approvals', '记住此站点，下次一键授权');
     rememberWrapper.appendChild(rememberText);
 
     const rememberHint = document.createElement('p');
     rememberHint.className = 'sdid-login-hint';
+    rememberHint.textContent = '';
     dialog.appendChild(rememberWrapper);
     dialog.appendChild(rememberHint);
 
@@ -372,12 +518,10 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.className = 'sdid-login-cancel';
-    cancelButton.textContent = t('Cancel', '取消');
 
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button';
     confirmButton.className = 'sdid-login-confirm';
-    confirmButton.textContent = t('Confirm', '确认');
 
     actions.appendChild(cancelButton);
     actions.appendChild(confirmButton);
@@ -387,10 +531,9 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     document.documentElement.appendChild(overlay);
 
     const previousActiveElement = document.activeElement;
-    const initialFocusTarget = identities.length === 1 ? confirmButton : select;
-    initialFocusTarget.focus({ preventScroll: true });
 
     let settled = false;
+    let detachLanguageListener = null;
 
     const cleanup = (result, shouldReject = false) => {
       if (settled) {
@@ -399,6 +542,9 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       settled = true;
       overlay.remove();
       document.removeEventListener('keydown', handleKeydown, true);
+      if (typeof detachLanguageListener === 'function') {
+        detachLanguageListener();
+      }
       if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
         previousActiveElement.focus({ preventScroll: true });
       }
@@ -412,7 +558,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       }
     };
 
-    const updateSummary = (identityId) => {
+    function updateSummary(identityId) {
       const identity = identities.find((item) => item.id === identityId);
       summary.innerHTML = '';
       if (!identity) {
@@ -425,33 +571,69 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         item.textContent = text;
         summary.appendChild(item);
       };
-      addLine(`${t('Identity', '身份')}: ${identity.label || t('Untitled identity', '未命名身份')}`);
+      addLine(`${translateText('content.overlay.summaryIdentity')} ${identity.label || translateText('common.untitledIdentity')}`);
       if (identity.did) {
-        addLine(`${t('DID', 'DID')}: ${identity.did}`);
+        addLine(`${translateText('content.overlay.summaryDid')} ${identity.did}`);
       }
       if (identity.roles?.length) {
-        addLine(`${t('Roles', '角色')}: ${identity.roles.join(', ')}`);
+        addLine(`${translateText('content.overlay.summaryRoles')} ${identity.roles.join(', ')}`);
       }
       if (identity.domain) {
-        addLine(`${t('Trusted domain', '信任域名')}: ${identity.domain}`);
+        addLine(`${translateText('content.overlay.summaryDomain')} ${identity.domain}`);
       }
       if (identity.username) {
-        addLine(`${t('Username', '用户名')}: ${identity.username}`);
+        addLine(`${translateText('content.overlay.summaryUsername')} ${identity.username}`);
       }
       if (identity.notes) {
-        addLine(`${t('Notes', '备注')}: ${identity.notes}`);
+        addLine(`${translateText('content.overlay.summaryNotes')} ${identity.notes}`);
       }
 
       if (requestOrigin) {
         const authorized = isOriginAuthorized(identity, requestOrigin);
         rememberCheckbox.checked = !authorized;
         rememberHint.textContent = authorized
-          ? t('This site is already authorized. Uncheck to require approval next time.', '当前站点已授权，取消勾选则下次重新确认。')
-          : t('Keep this checked to approve future logins instantly.', '保持勾选以便下次自动快速授权。');
+          ? translateText('content.overlay.rememberAuthorized')
+          : translateText('content.overlay.rememberHint');
       }
-    };
+    }
 
-    updateSummary(select.value || identities[0]?.id);
+    function refreshSelectOptions() {
+      Array.from(select.options).forEach((option) => {
+        const identity = identities.find((item) => item.id === option.value);
+        if (!identity) {
+          return;
+        }
+        option.textContent = identity.label || identity.username || translateText('common.untitledIdentity');
+      });
+    }
+
+    function refreshOverlayText() {
+      dialog.setAttribute('aria-label', translateText('content.overlay.title'));
+      title.textContent = translateText('content.overlay.title');
+      if (languageSwitchControl) {
+        languageSwitchControl.setLabels();
+        const activeLang = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
+        languageSwitchControl.setActive(activeLang);
+      }
+      if (originText) {
+        originText.textContent = `${translateText('content.overlay.origin')} ${requestOrigin}`;
+      }
+      selectTitle.textContent = translateText('content.overlay.chooseIdentity');
+      rememberText.textContent = translateText('content.overlay.remember');
+      cancelButton.textContent = translateText('common.cancel');
+      confirmButton.textContent = translateText('common.confirm');
+      refreshSelectOptions();
+      updateSummary(select.value || identities[0]?.id);
+    }
+
+    const activeLanguage = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
+    if (languageSwitchControl) {
+      languageSwitchControl.setActive(activeLanguage);
+    }
+    refreshOverlayText();
+
+    const initialFocusTarget = identities.length === 1 ? confirmButton : select;
+    initialFocusTarget.focus({ preventScroll: true });
 
     select.addEventListener('change', (event) => {
       updateSummary(event.target.value);
@@ -465,6 +647,16 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     };
 
     document.addEventListener('keydown', handleKeydown, true);
+
+    if (i18nApi?.onLanguageChange) {
+      detachLanguageListener = i18nApi.onLanguageChange((lang) => {
+        if (languageSwitchControl) {
+          languageSwitchControl.setActive(lang);
+          languageSwitchControl.setLabels();
+        }
+        refreshOverlayText();
+      });
+    }
 
     confirmButton.addEventListener('click', () => {
       cleanup({ identityId: select.value || identities[0]?.id, remember: rememberCheckbox.checked });
@@ -540,7 +732,7 @@ async function handleLoginRequest(event) {
         type: LOGIN_RESULT_EVENT,
         success: false,
         error: 'REQUEST_PENDING',
-        message: t('Another login request is already pending. Please complete it first.', '已有其他登录请求正在等待处理，请先完成。'),
+        message: translateText('content.errors.alreadyPending'),
         requestId
       },
       '*'
@@ -565,7 +757,7 @@ async function handleLoginRequest(event) {
           type: LOGIN_RESULT_EVENT,
           success: false,
           error: 'NO_IDENTITIES',
-          message: t('No eligible DID identities are saved in SDID.', 'SDID 中尚未保存可用的 DID 身份。'),
+          message: translateText('content.errors.noIdentities'),
           requestId
         },
         '*'
@@ -600,7 +792,7 @@ async function handleLoginRequest(event) {
           type: LOGIN_RESULT_EVENT,
           success: false,
           error: 'IDENTITY_NOT_FOUND',
-          message: t('The selected identity could not be located.', '未找到所选择的身份。'),
+          message: translateText('content.errors.identityNotFound'),
           requestId
         },
         '*'
@@ -622,8 +814,8 @@ async function handleLoginRequest(event) {
         success: false,
         cancelled: isCancelled,
         error: isCancelled
-          ? t('Login request cancelled by user.', '用户已取消登录请求。')
-          : t('Login request failed.', '登录请求处理失败。'),
+          ? translateText('content.errors.loginCancelled')
+          : translateText('content.errors.loginFailed'),
         requestId
       },
       '*'
@@ -713,8 +905,8 @@ injectPageBridge();
   style.id = styleId;
   style.textContent = `
     .sdid-identity-filled {
-      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.6);
-      transition: box-shadow 0.3s ease;
+      outline: 2px solid rgba(37, 99, 235, 0.45);
+      transition: outline 0.3s ease;
     }
     .sdid-login-overlay {
       position: fixed;
@@ -723,118 +915,174 @@ injectPageBridge();
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(2px);
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: rgba(15, 23, 42, 0.28);
+      font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif;
     }
     .sdid-login-dialog {
-      background: rgba(15, 23, 42, 0.95);
-      color: #f8fafc;
-      padding: 24px;
+      background: #ffffff;
+      color: #111827;
+      width: min(420px, calc(100% - 32px));
       border-radius: 16px;
-      width: min(440px, calc(100% - 32px));
-      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.45);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      border: 1px solid #d1d5db;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sdid-login-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .sdid-language-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f8fafc;
+    }
+    .sdid-language-switch button {
+      border: none;
+      background: transparent;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .sdid-language-switch button:hover {
+      color: #2563eb;
+    }
+    .sdid-language-switch button.active {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .sdid-language-switch button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
     .sdid-login-dialog h2 {
-      margin: 0 0 12px;
-      font-size: 1.25rem;
-      letter-spacing: 0.01em;
+      margin: 0;
+      font-size: 1.2rem;
+      color: #0b1f33;
     }
     .sdid-login-message {
-      margin: 0 0 12px;
-      color: rgba(148, 163, 184, 0.95);
+      margin: 0;
       font-size: 0.95rem;
+      color: #475569;
       word-break: break-word;
     }
     .sdid-login-origin {
-      margin: 0 0 16px;
-      font-size: 0.85rem;
-      color: rgba(148, 163, 184, 0.9);
+      margin: 0;
+      font-size: 0.8rem;
+      color: #5f6b7a;
     }
     .sdid-login-select {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-bottom: 12px;
       font-size: 0.95rem;
     }
     .sdid-login-select > span {
       font-weight: 600;
+      color: #0b1f33;
     }
     .sdid-login-select select {
-      appearance: none;
-      border: 1px solid rgba(148, 163, 184, 0.4);
+      border: 1px solid #d1d5db;
       border-radius: 12px;
       padding: 8px 12px;
       font-size: 0.95rem;
-      background: rgba(15, 23, 42, 0.9);
-      color: #e2e8f0;
+      background: #ffffff;
+      color: #111827;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .sdid-login-select select:disabled {
-      opacity: 0.7;
+    .sdid-login-select select:focus-visible {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
     }
     .sdid-login-summary {
       list-style: none;
       padding: 0;
-      margin: 0 0 16px;
-      font-size: 0.85rem;
-      color: rgba(226, 232, 240, 0.9);
+      margin: 0;
       display: flex;
       flex-direction: column;
       gap: 4px;
+      font-size: 0.82rem;
+      color: #475569;
     }
     .sdid-login-remember {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 0 0 6px;
       font-size: 0.85rem;
+      color: #0f172a;
     }
     .sdid-login-remember input {
       width: 18px;
       height: 18px;
-      accent-color: #22d3ee;
+      accent-color: #2563eb;
     }
     .sdid-login-hint {
-      margin: 0 0 16px;
-      font-size: 0.75rem;
-      color: rgba(148, 163, 184, 0.85);
+      margin: 0;
+      font-size: 0.78rem;
+      color: #64748b;
     }
     .sdid-login-actions {
       display: flex;
       justify-content: flex-end;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .sdid-login-actions button {
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 9px 18px;
+      font-size: 0.92rem;
       cursor: pointer;
-      border-radius: 9999px;
-      border: none;
-      font-size: 0.95rem;
-      padding: 10px 18px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      background: #ffffff;
+      color: #111827;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .sdid-login-actions button:hover {
+      background: #eef2ff;
+    }
+    .sdid-login-actions button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
     .sdid-login-confirm {
-      background: linear-gradient(135deg, #0ea5e9, #22d3ee);
-      color: #0f172a;
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 10px 30px rgba(14, 165, 233, 0.25);
     }
-    .sdid-login-confirm:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 40px rgba(14, 165, 233, 0.35);
+    .sdid-login-confirm:hover,
+    .sdid-login-confirm:focus-visible {
+      background: #1d4ed8;
+      color: #ffffff;
     }
     .sdid-login-cancel {
-      background: rgba(148, 163, 184, 0.2);
-      color: rgba(226, 232, 240, 0.9);
-    }
-    .sdid-login-cancel:hover {
-      background: rgba(148, 163, 184, 0.3);
+      color: #2563eb;
     }
     @media (max-width: 480px) {
       .sdid-login-dialog {
         padding: 20px;
         width: calc(100% - 24px);
+      }
+      .sdid-login-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .sdid-language-switch {
+        align-self: flex-start;
       }
       .sdid-login-actions {
         flex-direction: column-reverse;

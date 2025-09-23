@@ -8,48 +8,66 @@
   </head>
   <body>
     <header class="hero">
-      <h1>SDID Demo dApp｜SDID 演示应用</h1>
-      <p>
-        Connect to the SDID browser extension, approve the login request, and verify the DID signature from this page.｜通过 SDID 浏览器扩展批准登录请求，并在页面中验证 DID 签名。
-      </p>
+      <div class="hero-header">
+        <h1 data-i18n="hero.title"></h1>
+        <div
+          class="language-switch"
+          id="language-toggle"
+          role="group"
+          data-i18n="language.label"
+          data-i18n-target="aria-label"
+        >
+          <button type="button" data-language="en" aria-pressed="false">EN</button>
+          <button type="button" data-language="zh" aria-pressed="false">中文</button>
+        </div>
+      </div>
+      <p data-i18n="hero.subtitle"></p>
     </header>
 
     <main class="layout">
       <section class="card">
-        <h2>How it works｜工作流程</h2>
-        <ol>
-          <li>Install the SDID extension and create at least one DID identity.｜安装 SDID 扩展并创建至少一个 DID 身份。</li>
-          <li>Click “Connect with SDID” to send a login request to the extension.｜点击“连接 SDID”向扩展发送登录请求。</li>
-          <li>Approve the MetaMask-style prompt and optionally remember this site.｜在类似钱包的确认弹窗中审批，并可选择记住此站点。</li>
-          <li>The demo verifies the signature with the returned public key.｜演示站点使用返回的公钥验证签名。</li>
+        <h2 data-i18n="steps.title"></h2>
+        <ol class="steps">
+          <li data-i18n="steps.step1"></li>
+          <li data-i18n="steps.step2"></li>
+          <li data-i18n="steps.step3"></li>
+          <li data-i18n="steps.step4"></li>
         </ol>
       </section>
 
       <section class="card">
-        <h2>Try it now｜立即体验</h2>
+        <h2 data-i18n="actions.title"></h2>
         <div class="actions">
-          <button id="connect" class="primary">Connect with SDID｜连接 SDID</button>
-          <button id="force" class="secondary">Force prompt｜强制弹窗</button>
+          <button
+            id="connect"
+            class="primary"
+            data-i18n="actions.connect"
+            data-i18n-target="text,aria-label"
+          ></button>
+          <button
+            id="force"
+            class="secondary"
+            data-i18n="actions.force"
+            data-i18n-target="text,aria-label"
+          ></button>
         </div>
-        <p class="hint">If you previously authorized this site, use “Force prompt” to see the approval dialog again.｜如果你已经授权过此站点，可点击“强制弹窗”重新查看审批流程。</p>
+        <p class="hint" data-i18n="actions.hint"></p>
         <p id="status" class="status" role="status" aria-live="polite"></p>
       </section>
 
       <section class="card">
-        <h2>Identity response｜身份返回结果</h2>
+        <h2 data-i18n="sections.identity"></h2>
         <pre id="identity"></pre>
       </section>
 
       <section class="card">
-        <h2>Signature verification｜签名验证</h2>
+        <h2 data-i18n="sections.verification"></h2>
         <div id="verification" class="verification"></div>
       </section>
     </main>
 
     <footer class="footer">
-      <p>
-        Reload the extension after editing source files to pick up changes.｜如需修改源码，请在 Chrome 扩展页面中重新加载。
-      </p>
+      <p data-i18n="footer.note"></p>
     </footer>
 
     <script src="app.js" type="module"></script>

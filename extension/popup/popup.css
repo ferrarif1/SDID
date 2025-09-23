@@ -1,0 +1,171 @@
+:root {
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 320px;
+  min-height: 360px;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.app-header button {
+  border: none;
+  background: rgba(148, 163, 184, 0.2);
+  color: inherit;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.app-header button:hover,
+.app-header button:focus-visible {
+  background: rgba(125, 211, 252, 0.45);
+  outline: none;
+}
+
+main {
+  flex: 1;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+}
+
+.search {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.search-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  color: rgba(226, 232, 240, 0.65);
+}
+
+.search input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(15, 23, 42, 0.85);
+  color: inherit;
+  box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.35);
+}
+
+.identity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.identity-card {
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(8, 47, 73, 0.45);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+}
+
+.identity-card h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.identity-card p {
+  margin: 4px 0;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.identity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.identity-meta span {
+  font-size: 0.7rem;
+  background: rgba(125, 211, 252, 0.16);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.card-actions button {
+  flex: 1;
+  border-radius: 8px;
+  border: none;
+  padding: 8px 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.card-actions button.primary {
+  background: rgba(56, 189, 248, 0.85);
+  color: #0f172a;
+}
+
+.card-actions button.secondary {
+  background: rgba(148, 163, 184, 0.25);
+  color: inherit;
+}
+
+.card-actions button:hover,
+.card-actions button:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.empty-message {
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.75);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.primary {
+  background: rgba(56, 189, 248, 0.85);
+  color: #0f172a;
+  border-radius: 999px;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.app-footer {
+  padding: 12px 16px;
+  min-height: 28px;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.7);
+}

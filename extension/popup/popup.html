@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SDID Identity Manager</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>SDID</h1>
+      <button id="open-options" title="Manage identities" aria-label="Manage identities">
+        Manage
+      </button>
+    </header>
+
+    <main>
+      <label class="search">
+        <span class="search-label">Find identity</span>
+        <input id="search" type="search" placeholder="Search by name, username or domain" />
+      </label>
+
+      <section id="empty-state" hidden>
+        <p class="empty-message">
+          You have not created any identities yet.
+        </p>
+        <button id="create-first" class="primary">Create identity</button>
+      </section>
+
+      <ul id="identity-list" class="identity-list"></ul>
+    </main>
+
+    <footer class="app-footer">
+      <span id="status-message" role="status" aria-live="polite"></span>
+    </footer>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

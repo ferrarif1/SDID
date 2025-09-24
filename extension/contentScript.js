@@ -838,6 +838,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       requestItems.site.item.hidden = true;
     } else {
       requestItems.site.value.textContent = requestOrigin;
+
     }
 
     if (!requestId) {
@@ -991,6 +992,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       const keyTypeLabel = getKeyTypeLabel(identity.publicKeyJwk);
       if (keyTypeLabel) {
         addDetail('shield', 'content.overlay.summaryKeyType', keyTypeLabel);
+
       }
       if (identity.roles?.length) {
         addDetail('roles', 'content.overlay.summaryRoles', identity.roles.join(', '));
@@ -1071,6 +1073,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         requestItems.challenge.value.textContent = '';
         requestItems.challenge.item.hidden = true;
       }
+      requestItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
       selectTitle.textContent = translateText('content.overlay.chooseIdentity');
       rememberText.textContent = translateText('content.overlay.remember');
       cancelButton.textContent = translateText('common.cancel');

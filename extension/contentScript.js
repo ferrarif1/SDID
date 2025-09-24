@@ -25,12 +25,17 @@ const fallbackTranslations = {
   'content.overlay.sectionIdentity': 'Identity preview',
   'content.overlay.summarySite': 'Site',
   'content.overlay.summaryTime': 'Requested at',
+  'content.overlay.summaryRequestId': 'Request ID',
+  'content.overlay.summaryChallenge': 'Challenge nonce',
   'content.overlay.summaryIdentity': 'Identity',
   'content.overlay.summaryDid': 'DID',
   'content.overlay.summaryRoles': 'Roles',
   'content.overlay.summaryDomain': 'Trusted domain',
   'content.overlay.summaryUsername': 'Username',
   'content.overlay.summaryNotes': 'Notes',
+  'content.overlay.summaryVerification': 'Verification method',
+  'content.overlay.summaryKeyType': 'Key type',
+  'content.overlay.summaryTags': 'Tags',
   'content.errors.alreadyPending': 'Another login request is already pending. Please complete it first.',
   'content.errors.noIdentities': 'No eligible DID identities are saved in SDID.',
   'content.errors.identityNotFound': 'The selected identity could not be located.',
@@ -38,7 +43,10 @@ const fallbackTranslations = {
   'content.errors.loginFailed': 'Login request failed.',
   'common.cancel': 'Cancel',
   'common.confirm': 'Confirm',
-  'common.untitledIdentity': 'Untitled identity'
+  'common.untitledIdentity': 'Untitled identity',
+  'common.languageLabel': 'Language',
+  'common.languageEnglish': 'English',
+  'common.languageChinese': '中文'
 };
 
 let i18nApi = null;
@@ -258,6 +266,52 @@ function generateChallenge() {
   return `sdid:${Date.now().toString(16)}:${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
 }
 
+function getVerificationMethodId(identity) {
+  if (!identity?.did) {
+    return '';
+  }
+  return `${identity.did}#keys-1`;
+}
+
+function buildDidDocument(identity) {
+  if (!identity?.did || !identity?.publicKeyJwk) {
+    return null;
+  }
+  const verificationMethodId = getVerificationMethodId(identity);
+  return {
+    '@context': ['https://www.w3.org/ns/did/v1'],
+    id: identity.did,
+    verificationMethod: [
+      {
+        id: verificationMethodId,
+        type: 'JsonWebKey2020',
+        controller: identity.did,
+        publicKeyJwk: JSON.parse(JSON.stringify(identity.publicKeyJwk))
+      }
+    ],
+    authentication: [verificationMethodId],
+    assertionMethod: [verificationMethodId]
+  };
+}
+
+function getKeyTypeLabel(publicKeyJwk) {
+  if (!publicKeyJwk || typeof publicKeyJwk !== 'object') {
+    return '';
+  }
+  const parts = [];
+  if (publicKeyJwk.crv) {
+    parts.push(publicKeyJwk.crv);
+  }
+  if (publicKeyJwk.kty) {
+    parts.push(publicKeyJwk.kty);
+  }
+  const base = parts.join(' / ');
+  if (publicKeyJwk.alg) {
+    return base ? `${base} (${publicKeyJwk.alg})` : publicKeyJwk.alg;
+  }
+  return base;
+}
+
 function sanitizeIdentity(identity, origin) {
   if (!identity) {
     return null;
@@ -267,13 +321,15 @@ function sanitizeIdentity(identity, origin) {
     label: identity.label,
     roles: Array.isArray(identity.roles) ? [...identity.roles] : [],
     did: identity.did,
+    verificationMethod: getVerificationMethodId(identity),
     publicKeyJwk: identity.publicKeyJwk ? JSON.parse(JSON.stringify(identity.publicKeyJwk)) : null,
     username: identity.username,
     domain: identity.domain,
     tags: Array.isArray(identity.tags) ? [...identity.tags] : [],
     notes: identity.notes,
     updatedAt: identity.updatedAt,
-    authorized: origin ? isOriginAuthorized(identity, origin) : false
+    authorized: origin ? isOriginAuthorized(identity, origin) : false,
+    didDocument: buildDidDocument(identity)
   };
 }
 
@@ -347,16 +403,104 @@ async function setIdentityAuthorization(identityId, origin, shouldAuthorize) {
   return updatedOrigins;
 }
 
-async function signChallenge(identity, challenge) {
+async function signPayload(identity, payload) {
   if (!identity?.privateKeyJwk) {
     throw new Error('Missing private key');
   }
   const privateKey = await crypto.subtle.importKey('jwk', identity.privateKeyJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, [
     'sign'
   ]);
-  const data = new TextEncoder().encode(challenge);
+  const data = new TextEncoder().encode(payload);
   const signature = await crypto.subtle.sign({ name: 'ECDSA', hash: { name: 'SHA-256' } }, privateKey, data);
   return bufferToBase64(signature);
+}
+
+function canonicalizeJson(value) {
+  if (value === null || value === undefined) {
+    return 'null';
+  }
+  if (Array.isArray(value)) {
+    const items = value.map((item) => canonicalizeJson(item));
+    return `[${items.join(',')}]`;
+  }
+  if (typeof value === 'object') {
+    const keys = Object.keys(value)
+      .filter((key) => value[key] !== undefined)
+      .sort();
+    const entries = keys.map((key) => `${JSON.stringify(key)}:${canonicalizeJson(value[key])}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function buildAuthenticationPayload({ identity, origin, challenge, requestId, requestMessage }) {
+  const issuedAt = new Date();
+  const expiresAt = new Date(issuedAt.getTime() + 5 * 60 * 1000);
+  const payload = {
+    iss: identity.did,
+    sub: identity.did,
+    nonce: challenge,
+    iat: issuedAt.toISOString(),
+    exp: expiresAt.toISOString(),
+    purpose: 'authentication'
+  };
+
+  if (origin) {
+    payload.aud = origin;
+  }
+  if (requestId) {
+    payload.requestId = requestId;
+  }
+  if (requestMessage) {
+    payload.statement = requestMessage;
+  }
+
+  const verificationMethod = getVerificationMethodId(identity);
+  if (verificationMethod) {
+    payload.verificationMethod = verificationMethod;
+  }
+
+  const resources = {};
+  if (identity.roles?.length) {
+    resources.roles = [...identity.roles];
+  }
+  if (identity.domain) {
+    resources.domain = identity.domain;
+  }
+  if (identity.tags?.length) {
+    resources.tags = [...identity.tags];
+  }
+  if (identity.label) {
+    resources.label = identity.label;
+  }
+  if (Object.keys(resources).length) {
+    payload.resources = resources;
+  }
+
+  return payload;
+}
+
+async function createAuthenticationProof({ identity, origin, challenge, requestId, requestMessage }) {
+  const payload = buildAuthenticationPayload({ identity, origin, challenge, requestId, requestMessage });
+  const canonicalRequest = canonicalizeJson(payload);
+  const signatureValue = await signPayload(identity, canonicalRequest);
+  const proof = {
+    type: 'EcdsaSecp256r1Signature2019',
+    created: payload.iat,
+    proofPurpose: 'authentication',
+    verificationMethod: payload.verificationMethod || getVerificationMethodId(identity),
+    challenge,
+    signatureValue
+  };
+  if (origin) {
+    proof.domain = origin;
+  }
+  return {
+    payload,
+    canonicalRequest,
+    proof,
+    signatureValue
+  };
 }
 
 function getLanguageDisplayName(language) {
@@ -483,6 +627,28 @@ function createIconElement(iconName) {
       appendShape('line', { x1: '9', y1: '15', x2: '15', y2: '15' });
       break;
     }
+    case 'key': {
+      appendShape('circle', { cx: '9', cy: '12', r: '3' });
+      appendShape('line', { x1: '11.5', y1: '12', x2: '19', y2: '12' });
+      appendShape('line', { x1: '16.5', y1: '10.5', x2: '16.5', y2: '13.5' });
+      break;
+    }
+    case 'shield': {
+      appendShape('path', { d: 'M12 4l6 3v5.6c0 3.7-2.6 7-6 8-3.4-1-6-4.3-6-8V7z' });
+      break;
+    }
+    case 'tag': {
+      appendShape('path', { d: 'M5 8.5V5h3.5L19 15.5 15.5 19 5 8.5z' });
+      appendShape('circle', { cx: '8', cy: '8', r: '1.5' });
+      break;
+    }
+    case 'hash': {
+      appendShape('line', { x1: '8', y1: '7', x2: '6', y2: '17' });
+      appendShape('line', { x1: '16', y1: '7', x2: '14', y2: '17' });
+      appendShape('line', { x1: '6', y1: '11', x2: '18', y2: '11' });
+      appendShape('line', { x1: '5', y1: '15', x2: '17', y2: '15' });
+      break;
+    }
     default: {
       return null;
     }
@@ -554,7 +720,7 @@ function createOverlayLanguageSwitch() {
   };
 }
 
-function createLoginOverlay(identities, initialId, requestOrigin, requestMessage) {
+function createLoginOverlay(identities, initialId, requestOrigin, requestMessage, requestChallenge, requestId) {
   return new Promise((resolve, reject) => {
     const requestedAt = new Date();
 
@@ -663,13 +829,28 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
     const requestItems = {
       site: createDetailItem(requestList, 'site'),
-      time: createDetailItem(requestList, 'time')
+      time: createDetailItem(requestList, 'time'),
+      requestId: createDetailItem(requestList, 'hash'),
+      challenge: createDetailItem(requestList, 'shield')
     };
 
     if (!requestOrigin) {
       requestItems.site.item.hidden = true;
     } else {
       requestItems.site.value.textContent = requestOrigin;
+
+    }
+
+    if (!requestId) {
+      requestItems.requestId.item.hidden = true;
+    } else {
+      requestItems.requestId.value.textContent = requestId;
+    }
+
+    if (!requestChallenge) {
+      requestItems.challenge.item.hidden = true;
+    } else {
+      requestItems.challenge.value.textContent = requestChallenge;
     }
 
     const identitySection = document.createElement('section');
@@ -804,6 +985,15 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       if (identity.did) {
         addDetail('did', 'content.overlay.summaryDid', identity.did);
       }
+      const verificationMethod = getVerificationMethodId(identity);
+      if (verificationMethod) {
+        addDetail('key', 'content.overlay.summaryVerification', verificationMethod);
+      }
+      const keyTypeLabel = getKeyTypeLabel(identity.publicKeyJwk);
+      if (keyTypeLabel) {
+        addDetail('shield', 'content.overlay.summaryKeyType', keyTypeLabel);
+
+      }
       if (identity.roles?.length) {
         addDetail('roles', 'content.overlay.summaryRoles', identity.roles.join(', '));
       }
@@ -812,6 +1002,9 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       }
       if (identity.username) {
         addDetail('user', 'content.overlay.summaryUsername', identity.username);
+      }
+      if (identity.tags?.length) {
+        addDetail('tag', 'content.overlay.summaryTags', identity.tags.join(', '));
       }
       if (identity.notes) {
         addDetail('notes', 'content.overlay.summaryNotes', identity.notes);
@@ -856,12 +1049,29 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       identityTitle.textContent = translateText('content.overlay.sectionIdentity');
       requestItems.site.label.textContent = translateText('content.overlay.summarySite');
       requestItems.time.label.textContent = translateText('content.overlay.summaryTime');
+      requestItems.requestId.label.textContent = translateText('content.overlay.summaryRequestId');
+      requestItems.challenge.label.textContent = translateText('content.overlay.summaryChallenge');
       if (requestOrigin) {
         requestItems.site.value.textContent = requestOrigin;
         requestItems.site.item.hidden = false;
       } else {
         requestItems.site.value.textContent = '';
         requestItems.site.item.hidden = true;
+      }
+      requestItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
+      if (requestId) {
+        requestItems.requestId.value.textContent = requestId;
+        requestItems.requestId.item.hidden = false;
+      } else {
+        requestItems.requestId.value.textContent = '';
+        requestItems.requestId.item.hidden = true;
+      }
+      if (requestChallenge) {
+        requestItems.challenge.value.textContent = requestChallenge;
+        requestItems.challenge.item.hidden = false;
+      } else {
+        requestItems.challenge.value.textContent = '';
+        requestItems.challenge.item.hidden = true;
       }
       requestItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
       selectTitle.textContent = translateText('content.overlay.chooseIdentity');
@@ -924,9 +1134,16 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     });
   });
 }
-async function finalizeAuthorization({ identity, origin, challengeInput, remember, requestId }) {
-  const challenge = typeof challengeInput === 'string' && challengeInput.trim() ? challengeInput : generateChallenge();
-  const signature = await signChallenge(identity, challenge);
+async function finalizeAuthorization({ identity, origin, challenge, remember, requestId, requestMessage }) {
+  const effectiveChallenge = typeof challenge === 'string' && challenge.trim() ? challenge : generateChallenge();
+  const authentication = await createAuthenticationProof({
+    identity,
+    origin,
+    challenge: effectiveChallenge,
+    requestId,
+    requestMessage
+  });
+  const signature = authentication.signatureValue;
 
   if (origin) {
     if (remember === true || remember === false) {
@@ -960,7 +1177,12 @@ async function finalizeAuthorization({ identity, origin, challengeInput, remembe
       identity: sanitizeIdentity(identity, origin),
       signature,
       algorithm: 'ECDSA_P256_SHA256',
-      challenge,
+      challenge: effectiveChallenge,
+      proof: authentication.proof,
+      authentication: {
+        payload: authentication.payload,
+        canonicalRequest: authentication.canonicalRequest
+      },
       fill: fillOutcome,
       authorized: authorizedState,
       remembered: rememberedState,
@@ -999,6 +1221,7 @@ async function handleLoginRequest(event) {
     const forcePrompt = Boolean(event.data.forcePrompt);
     const requestMessage = typeof event.data.message === 'string' ? event.data.message : null;
     const challengeInput = typeof event.data.challenge === 'string' ? event.data.challenge : null;
+    const challenge = challengeInput && challengeInput.trim() ? challengeInput.trim() : generateChallenge();
 
     const { identities, selected, authorizedMatch } = await selectPreferredIdentity(preferredId, origin);
 
@@ -1026,13 +1249,27 @@ async function handleLoginRequest(event) {
     }
 
     if (candidate) {
-      await finalizeAuthorization({ identity: candidate, origin, challengeInput, remember: true, requestId });
+      await finalizeAuthorization({
+        identity: candidate,
+        origin,
+        challenge,
+        remember: true,
+        requestId,
+        requestMessage
+      });
       return;
     }
 
     const initialIdentity = selected ?? identities[0];
 
-    const selection = await createLoginOverlay(identities, initialIdentity?.id, origin, requestMessage);
+    const selection = await createLoginOverlay(
+      identities,
+      initialIdentity?.id,
+      origin,
+      requestMessage,
+      challenge,
+      requestId
+    );
 
     const identityId = selection?.identityId ?? initialIdentity?.id;
     const chosen = identities.find((identity) => identity.id === identityId) || initialIdentity;
@@ -1053,7 +1290,14 @@ async function handleLoginRequest(event) {
 
     const rememberDecision = selection?.remember ?? true;
 
-    await finalizeAuthorization({ identity: chosen, origin, challengeInput, remember: rememberDecision, requestId });
+    await finalizeAuthorization({
+      identity: chosen,
+      origin,
+      challenge,
+      remember: rememberDecision,
+      requestId,
+      requestMessage
+    });
   } catch (error) {
     const isCancelled = Boolean(error?.isCancelled || error?.cancelled);
     if (!isCancelled) {

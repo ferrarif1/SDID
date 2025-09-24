@@ -64,7 +64,9 @@ const translations = {
           roles: 'Roles:',
           did: 'DID:',
           username: 'Username:',
-          domain: 'Trusted domain:'
+          domain: 'Trusted domain:',
+          verificationMethod: 'Verification method:',
+          keyType: 'Key type:'
         },
         authorizedSites: 'Authorized sites',
         lastUsed: 'Last used:',
@@ -190,12 +192,17 @@ const translations = {
         sectionIdentity: 'Identity preview',
         summarySite: 'Site',
         summaryTime: 'Requested at',
+        summaryRequestId: 'Request ID',
+        summaryChallenge: 'Challenge nonce',
         summaryIdentity: 'Identity',
         summaryDid: 'DID',
+        summaryVerification: 'Verification method',
+        summaryKeyType: 'Key type',
         summaryRoles: 'Roles',
         summaryDomain: 'Trusted domain',
         summaryUsername: 'Username',
-        summaryNotes: 'Notes'
+        summaryNotes: 'Notes',
+        summaryTags: 'Tags'
       }
     }
   },
@@ -260,7 +267,9 @@ const translations = {
           roles: '角色：',
           did: 'DID：',
           username: '用户名：',
-          domain: '信任域名：'
+          domain: '信任域名：',
+          verificationMethod: '验证方法：',
+          keyType: '密钥类型：'
         },
         authorizedSites: '已授权站点',
         lastUsed: '最近使用：',
@@ -386,12 +395,17 @@ const translations = {
         sectionIdentity: '身份预览',
         summarySite: '站点',
         summaryTime: '请求时间',
+        summaryRequestId: '请求 ID',
+        summaryChallenge: '随机挑战值',
         summaryIdentity: '身份',
         summaryDid: 'DID',
+        summaryVerification: '验证方法',
+        summaryKeyType: '密钥类型',
         summaryRoles: '角色',
         summaryDomain: '信任域名',
         summaryUsername: '用户名',
-        summaryNotes: '备注'
+        summaryNotes: '备注',
+        summaryTags: '标签'
       }
     }
   }

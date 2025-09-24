@@ -365,7 +365,7 @@ function changeLanguage(language) {
   applyVerification();
 }
 
-async function requestLogin(forcePrompt = false) {
+async function requestLogin(forcePrompt = true) {
   disableButtons(true);
   setVerification(null);
   renderIdentity(null);
@@ -422,7 +422,7 @@ if (languageButtons.length) {
 }
 
 if (connectButton) {
-  connectButton.addEventListener('click', () => requestLogin(false));
+  connectButton.addEventListener('click', () => requestLogin());
 }
 
 if (forceButton) {

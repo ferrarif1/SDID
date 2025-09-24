@@ -180,17 +180,22 @@ const translations = {
       },
       overlay: {
         title: 'SDID login request',
-        origin: 'Origin:',
+        subtitle: 'Review and approve this sign-in request.',
+        origin: 'Origin',
         chooseIdentity: 'Choose identity',
         remember: 'Remember this site for one-click approvals',
         rememberAuthorized: 'This site is already authorized. Uncheck to require approval next time.',
         rememberHint: 'Keep this checked to approve future logins instantly.',
-        summaryIdentity: 'Identity:',
-        summaryDid: 'DID:',
-        summaryRoles: 'Roles:',
-        summaryDomain: 'Trusted domain:',
-        summaryUsername: 'Username:',
-        summaryNotes: 'Notes:'
+        sectionRequest: 'Request details',
+        sectionIdentity: 'Identity preview',
+        summarySite: 'Site',
+        summaryTime: 'Requested at',
+        summaryIdentity: 'Identity',
+        summaryDid: 'DID',
+        summaryRoles: 'Roles',
+        summaryDomain: 'Trusted domain',
+        summaryUsername: 'Username',
+        summaryNotes: 'Notes'
       }
     }
   },
@@ -371,17 +376,22 @@ const translations = {
       },
       overlay: {
         title: 'SDID 登录请求',
-        origin: '请求来源：',
+        subtitle: '请确认并签署本次登录请求。',
+        origin: '请求站点',
         chooseIdentity: '选择登录身份',
         remember: '记住此站点，下次一键授权',
         rememberAuthorized: '当前站点已授权，取消勾选则下次重新确认。',
         rememberHint: '保持勾选以便下次自动快速授权。',
-        summaryIdentity: '身份：',
-        summaryDid: 'DID：',
-        summaryRoles: '角色：',
-        summaryDomain: '信任域名：',
-        summaryUsername: '用户名：',
-        summaryNotes: '备注：'
+        sectionRequest: '请求信息',
+        sectionIdentity: '身份预览',
+        summarySite: '站点',
+        summaryTime: '请求时间',
+        summaryIdentity: '身份',
+        summaryDid: 'DID',
+        summaryRoles: '角色',
+        summaryDomain: '信任域名',
+        summaryUsername: '用户名',
+        summaryNotes: '备注'
       }
     }
   }

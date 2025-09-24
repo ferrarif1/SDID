@@ -15,17 +15,22 @@ const fallbackTranslations = {
   'content.errors.passwordMissing': 'No password field detected on this page.',
   'content.errors.noCredentials': 'Identity does not contain username or password values to fill.',
   'content.overlay.title': 'SDID login request',
-  'content.overlay.origin': 'Origin:',
+  'content.overlay.subtitle': 'Review and approve this sign-in request.',
+  'content.overlay.origin': 'Origin',
   'content.overlay.chooseIdentity': 'Choose identity',
   'content.overlay.remember': 'Remember this site for one-click approvals',
   'content.overlay.rememberAuthorized': 'This site is already authorized. Uncheck to require approval next time.',
   'content.overlay.rememberHint': 'Keep this checked to approve future logins instantly.',
-  'content.overlay.summaryIdentity': 'Identity:',
-  'content.overlay.summaryDid': 'DID:',
-  'content.overlay.summaryRoles': 'Roles:',
-  'content.overlay.summaryDomain': 'Trusted domain:',
-  'content.overlay.summaryUsername': 'Username:',
-  'content.overlay.summaryNotes': 'Notes:',
+  'content.overlay.sectionRequest': 'Request details',
+  'content.overlay.sectionIdentity': 'Identity preview',
+  'content.overlay.summarySite': 'Site',
+  'content.overlay.summaryTime': 'Requested at',
+  'content.overlay.summaryIdentity': 'Identity',
+  'content.overlay.summaryDid': 'DID',
+  'content.overlay.summaryRoles': 'Roles',
+  'content.overlay.summaryDomain': 'Trusted domain',
+  'content.overlay.summaryUsername': 'Username',
+  'content.overlay.summaryNotes': 'Notes',
   'content.errors.alreadyPending': 'Another login request is already pending. Please complete it first.',
   'content.errors.noIdentities': 'No eligible DID identities are saved in SDID.',
   'content.errors.identityNotFound': 'The selected identity could not be located.',
@@ -369,6 +374,127 @@ function getLanguageDisplayName(language) {
   return language ? language.toUpperCase() : '';
 }
 
+function formatTimestamp(date, language) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const locale = language === 'zh' ? 'zh-CN' : language || 'en';
+  try {
+    const formatter = new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    return formatter.format(date);
+  } catch (error) {
+    console.debug('Unable to format timestamp with Intl API, falling back to locale string.', error);
+    try {
+      return date.toLocaleString(locale);
+    } catch (_fallbackError) {
+      return date.toISOString();
+    }
+  }
+}
+
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
+function createIconElement(iconName) {
+  const svg = document.createElementNS(SVG_NAMESPACE, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('sdid-icon-symbol');
+
+  const baseStroke = {
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '1.6',
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round'
+  };
+
+  const appendShape = (tag, attributes = {}) => {
+    const element = document.createElementNS(SVG_NAMESPACE, tag);
+    const merged = { ...baseStroke, ...attributes };
+    Object.entries(merged).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+    svg.appendChild(element);
+    return element;
+  };
+
+  switch (iconName) {
+    case 'lock': {
+      appendShape('rect', { x: '6', y: '10', width: '12', height: '10', rx: '2' });
+      appendShape('path', { d: 'M9 10V7a3 3 0 0 1 6 0v3' });
+      break;
+    }
+    case 'site': {
+      appendShape('circle', { cx: '12', cy: '12', r: '8.5' });
+      appendShape('line', { x1: '4', y1: '12', x2: '20', y2: '12' });
+      appendShape('line', { x1: '12', y1: '4', x2: '12', y2: '20' });
+      break;
+    }
+    case 'time': {
+      appendShape('circle', { cx: '12', cy: '12', r: '8.5' });
+      appendShape('line', { x1: '12', y1: '7', x2: '12', y2: '12' });
+      appendShape('line', { x1: '12', y1: '12', x2: '16', y2: '14.5' });
+      break;
+    }
+    case 'identity': {
+      appendShape('rect', { x: '4', y: '6', width: '16', height: '12', rx: '3' });
+      appendShape('circle', { cx: '9', cy: '12', r: '2.5', fill: 'currentColor', stroke: 'none' });
+      appendShape('line', { x1: '13', y1: '10', x2: '17', y2: '10' });
+      appendShape('line', { x1: '13', y1: '14', x2: '17', y2: '14' });
+      break;
+    }
+    case 'did': {
+      appendShape('circle', { cx: '8.5', cy: '12', r: '3' });
+      appendShape('circle', { cx: '15.5', cy: '12', r: '3' });
+      appendShape('line', { x1: '11.5', y1: '12', x2: '12.5', y2: '12' });
+      break;
+    }
+    case 'roles': {
+      appendShape('circle', { cx: '12', cy: '7', r: '2.5' });
+      appendShape('circle', { cx: '7.5', cy: '15.2', r: '2.5' });
+      appendShape('circle', { cx: '16.5', cy: '15.2', r: '2.5' });
+      appendShape('line', { x1: '9.3', y1: '13.4', x2: '10.9', y2: '10.2' });
+      appendShape('line', { x1: '14.7', y1: '13.4', x2: '13.1', y2: '10.2' });
+      appendShape('line', { x1: '9.8', y1: '16.8', x2: '14.2', y2: '16.8' });
+      break;
+    }
+    case 'domain': {
+      appendShape('path', { d: 'M12 4l6 3v5.5c0 3.4-2.3 6.5-6 7.5-3.7-1-6-4.1-6-7.5V7z' });
+      break;
+    }
+    case 'user': {
+      appendShape('circle', { cx: '12', cy: '10', r: '3' });
+      appendShape('path', { d: 'M6.5 17c1.8-2.3 5-3 5.5-3s3.7 0.7 5.5 3' });
+      break;
+    }
+    case 'notes': {
+      appendShape('path', {
+        d: 'M8 5h7l3 3v11a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 19V6.5A1.5 1.5 0 0 1 8 5z'
+      });
+      appendShape('polyline', { points: '15,5 15,9 19,9' });
+      appendShape('line', { x1: '9', y1: '12', x2: '15', y2: '12' });
+      appendShape('line', { x1: '9', y1: '15', x2: '15', y2: '15' });
+      break;
+    }
+    default: {
+      return null;
+    }
+  }
+
+  if (!svg.childNodes.length) {
+    return null;
+  }
+
+  return svg;
+}
+
 function createOverlayLanguageSwitch() {
   if (!i18nApi?.setLanguage) {
     return null;
@@ -430,6 +556,8 @@ function createOverlayLanguageSwitch() {
 
 function createLoginOverlay(identities, initialId, requestOrigin, requestMessage) {
   return new Promise((resolve, reject) => {
+    const requestedAt = new Date();
+
     const overlay = document.createElement('div');
     overlay.id = LOGIN_OVERLAY_ID;
     overlay.className = 'sdid-login-overlay';
@@ -442,8 +570,32 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     const header = document.createElement('div');
     header.className = 'sdid-login-header';
 
+    const headerMain = document.createElement('div');
+    headerMain.className = 'sdid-login-header-main';
+
+    const headerIcon = document.createElement('div');
+    headerIcon.className = 'sdid-login-icon';
+    headerIcon.setAttribute('aria-hidden', 'true');
+    const headerIconGraphic = createIconElement('lock');
+    if (headerIconGraphic) {
+      headerIcon.appendChild(headerIconGraphic);
+    } else {
+      headerIcon.textContent = '🔐';
+    }
+    headerMain.appendChild(headerIcon);
+
+    const headerText = document.createElement('div');
+    headerText.className = 'sdid-login-header-text';
+
     const title = document.createElement('h2');
-    header.appendChild(title);
+    headerText.appendChild(title);
+
+    const subtitle = document.createElement('p');
+    subtitle.className = 'sdid-login-subtitle';
+    headerText.appendChild(subtitle);
+
+    headerMain.appendChild(headerText);
+    header.appendChild(headerMain);
 
     const languageSwitchControl = createOverlayLanguageSwitch();
     if (languageSwitchControl) {
@@ -459,12 +611,74 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       dialog.appendChild(message);
     }
 
-    let originText = null;
-    if (requestOrigin) {
-      originText = document.createElement('p');
-      originText.className = 'sdid-login-origin';
-      dialog.appendChild(originText);
+    const sections = document.createElement('div');
+    sections.className = 'sdid-login-sections';
+    dialog.appendChild(sections);
+
+    function createDetailItem(list, iconName, labelText = '', valueText = '') {
+      const item = document.createElement('li');
+      item.className = 'sdid-login-detail-item';
+
+      const icon = document.createElement('span');
+      icon.className = `sdid-login-item-icon icon-${iconName}`;
+      icon.setAttribute('aria-hidden', 'true');
+      const iconGraphic = createIconElement(iconName);
+      if (iconGraphic) {
+        icon.appendChild(iconGraphic);
+      } else {
+        icon.textContent = '•';
+      }
+      item.appendChild(icon);
+
+      const textWrap = document.createElement('div');
+      textWrap.className = 'sdid-login-item-text';
+
+      const label = document.createElement('span');
+      label.className = 'sdid-login-item-label';
+      label.textContent = labelText;
+      textWrap.appendChild(label);
+
+      const value = document.createElement('span');
+      value.className = 'sdid-login-item-value';
+      value.textContent = valueText;
+      textWrap.appendChild(value);
+
+      item.appendChild(textWrap);
+      list.appendChild(item);
+
+      return { item, label, value };
     }
+
+    const requestSection = document.createElement('section');
+    requestSection.className = 'sdid-login-section';
+    sections.appendChild(requestSection);
+
+    const requestTitle = document.createElement('h3');
+    requestTitle.className = 'sdid-login-section-title';
+    requestSection.appendChild(requestTitle);
+
+    const requestList = document.createElement('ul');
+    requestList.className = 'sdid-login-detail-list';
+    requestSection.appendChild(requestList);
+
+    const requestItems = {
+      site: createDetailItem(requestList, 'site'),
+      time: createDetailItem(requestList, 'time')
+    };
+
+    if (!requestOrigin) {
+      requestItems.site.item.hidden = true;
+    } else {
+      requestItems.site.value.textContent = requestOrigin;
+    }
+
+    const identitySection = document.createElement('section');
+    identitySection.className = 'sdid-login-section';
+    sections.appendChild(identitySection);
+
+    const identityTitle = document.createElement('h3');
+    identityTitle.className = 'sdid-login-section-title';
+    identitySection.appendChild(identityTitle);
 
     const selectLabel = document.createElement('label');
     selectLabel.className = 'sdid-login-select';
@@ -488,11 +702,11 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     }
 
     selectLabel.appendChild(select);
-    dialog.appendChild(selectLabel);
+    identitySection.appendChild(selectLabel);
 
     const summary = document.createElement('ul');
-    summary.className = 'sdid-login-summary';
-    dialog.appendChild(summary);
+    summary.className = 'sdid-login-detail-list sdid-login-summary';
+    identitySection.appendChild(summary);
 
     const rememberWrapper = document.createElement('label');
     rememberWrapper.className = 'sdid-login-remember';
@@ -505,12 +719,13 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
     const rememberText = document.createElement('span');
     rememberWrapper.appendChild(rememberText);
+    identitySection.appendChild(rememberWrapper);
 
     const rememberHint = document.createElement('p');
     rememberHint.className = 'sdid-login-hint';
     rememberHint.textContent = '';
-    dialog.appendChild(rememberWrapper);
-    dialog.appendChild(rememberHint);
+    rememberHint.hidden = !requestOrigin;
+    identitySection.appendChild(rememberHint);
 
     const actions = document.createElement('div');
     actions.className = 'sdid-login-actions';
@@ -576,26 +791,30 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       if (identityChanged) {
         rememberDirty = false;
       }
-      const addLine = (text) => {
-        const item = document.createElement('li');
-        item.textContent = text;
-        summary.appendChild(item);
+
+      const addDetail = (icon, labelKey, value) => {
+        if (!value) {
+          return;
+        }
+        createDetailItem(summary, icon, translateText(labelKey), value);
       };
-      addLine(`${translateText('content.overlay.summaryIdentity')} ${identity.label || translateText('common.untitledIdentity')}`);
+
+      const identityLabel = identity.label || translateText('common.untitledIdentity');
+      addDetail('identity', 'content.overlay.summaryIdentity', identityLabel);
       if (identity.did) {
-        addLine(`${translateText('content.overlay.summaryDid')} ${identity.did}`);
+        addDetail('did', 'content.overlay.summaryDid', identity.did);
       }
       if (identity.roles?.length) {
-        addLine(`${translateText('content.overlay.summaryRoles')} ${identity.roles.join(', ')}`);
+        addDetail('roles', 'content.overlay.summaryRoles', identity.roles.join(', '));
       }
       if (identity.domain) {
-        addLine(`${translateText('content.overlay.summaryDomain')} ${identity.domain}`);
+        addDetail('domain', 'content.overlay.summaryDomain', identity.domain);
       }
       if (identity.username) {
-        addLine(`${translateText('content.overlay.summaryUsername')} ${identity.username}`);
+        addDetail('user', 'content.overlay.summaryUsername', identity.username);
       }
       if (identity.notes) {
-        addLine(`${translateText('content.overlay.summaryNotes')} ${identity.notes}`);
+        addDetail('notes', 'content.overlay.summaryNotes', identity.notes);
       }
 
       if (requestOrigin) {
@@ -606,8 +825,10 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         rememberHint.textContent = authorized
           ? translateText('content.overlay.rememberAuthorized')
           : translateText('content.overlay.rememberHint');
+        rememberHint.hidden = false;
       } else {
         rememberHint.textContent = '';
+        rememberHint.hidden = true;
       }
       lastSummaryIdentityId = identity.id;
     }
@@ -623,16 +844,26 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     }
 
     function refreshOverlayText() {
+      const activeLang = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
       dialog.setAttribute('aria-label', translateText('content.overlay.title'));
       title.textContent = translateText('content.overlay.title');
+      subtitle.textContent = translateText('content.overlay.subtitle');
       if (languageSwitchControl) {
         languageSwitchControl.setLabels();
-        const activeLang = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
         languageSwitchControl.setActive(activeLang);
       }
-      if (originText) {
-        originText.textContent = `${translateText('content.overlay.origin')} ${requestOrigin}`;
+      requestTitle.textContent = translateText('content.overlay.sectionRequest');
+      identityTitle.textContent = translateText('content.overlay.sectionIdentity');
+      requestItems.site.label.textContent = translateText('content.overlay.summarySite');
+      requestItems.time.label.textContent = translateText('content.overlay.summaryTime');
+      if (requestOrigin) {
+        requestItems.site.value.textContent = requestOrigin;
+        requestItems.site.item.hidden = false;
+      } else {
+        requestItems.site.value.textContent = '';
+        requestItems.site.item.hidden = true;
       }
+      requestItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
       selectTitle.textContent = translateText('content.overlay.chooseIdentity');
       rememberText.textContent = translateText('content.overlay.remember');
       cancelButton.textContent = translateText('common.cancel');
@@ -917,21 +1148,58 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-dialog {
       background: #ffffff;
-      color: #111827;
-      width: min(420px, calc(100% - 32px));
-      border-radius: 16px;
-      border: 1px solid #d1d5db;
-      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
-      padding: 24px;
+      color: #0f172a;
+      width: min(460px, calc(100% - 32px));
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 28px 48px rgba(15, 23, 42, 0.18);
+      padding: 28px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
     }
     .sdid-login-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
+    }
+    .sdid-login-header-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sdid-login-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      background: #eef2ff;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sdid-login-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+    .sdid-login-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sdid-login-header-text h2 {
+      margin: 0;
+      font-size: 1.28rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .sdid-login-subtitle {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #475569;
+      line-height: 1.35;
     }
     .sdid-language-switch {
       display: inline-flex;
@@ -939,97 +1207,153 @@ window.addEventListener('message', handleLoginRequest);
       gap: 6px;
       padding: 4px;
       border-radius: 999px;
-      border: 1px solid #d1d5db;
+      border: 1px solid #e2e8f0;
       background: #f8fafc;
     }
     .sdid-language-switch button {
       border: none;
       background: transparent;
       border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
+      padding: 4px 11px;
+      font-size: 0.76rem;
       font-weight: 600;
-      color: #475569;
+      color: #64748b;
       cursor: pointer;
       transition: background 0.2s ease, color 0.2s ease;
     }
     .sdid-language-switch button:hover {
-      color: #2563eb;
+      color: #1d4ed8;
     }
     .sdid-language-switch button.active {
-      background: #2563eb;
+      background: #1d4ed8;
       color: #ffffff;
     }
     .sdid-language-switch button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-    }
-    .sdid-login-dialog h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      color: #0b1f33;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
     }
     .sdid-login-message {
       margin: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #f8fafc;
+      color: #334155;
       font-size: 0.95rem;
-      color: #475569;
+      line-height: 1.45;
       word-break: break-word;
     }
-    .sdid-login-origin {
-      margin: 0;
-      font-size: 0.8rem;
-      color: #5f6b7a;
-    }
-    .sdid-login-select {
+    .sdid-login-sections {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      font-size: 0.95rem;
+      gap: 18px;
     }
-    .sdid-login-select > span {
+    .sdid-login-section {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sdid-login-section-title {
+      margin: 0;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
       font-weight: 600;
-      color: #0b1f33;
     }
-    .sdid-login-select select {
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 0.95rem;
-      background: #ffffff;
-      color: #111827;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .sdid-login-select select:focus-visible {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-    }
-    .sdid-login-summary {
+    .sdid-login-detail-list {
       list-style: none;
       padding: 0;
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      font-size: 0.82rem;
-      color: #475569;
+      gap: 14px;
     }
-    .sdid-login-remember {
+    .sdid-login-detail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .sdid-login-item-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: #e9efff;
+      color: #1d4ed8;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sdid-login-item-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    .sdid-login-item-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+      flex: 1;
+    }
+    .sdid-login-item-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .sdid-login-item-value {
+      font-size: 0.94rem;
       color: #0f172a;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .sdid-login-select {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sdid-login-select > span {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .sdid-login-select select {
+      border: 1px solid #dbe2f3;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 0.95rem;
+      background: #ffffff;
+      color: #0f172a;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .sdid-login-select select:focus-visible {
+      outline: none;
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+    }
+    .sdid-login-remember {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #1e293b;
     }
     .sdid-login-remember input {
       width: 18px;
       height: 18px;
-      accent-color: #2563eb;
+      accent-color: #1d4ed8;
     }
     .sdid-login-hint {
       margin: 0;
       font-size: 0.78rem;
       color: #64748b;
+      line-height: 1.4;
     }
     .sdid-login-actions {
       display: flex;
@@ -1039,50 +1363,60 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-actions button {
       border-radius: 999px;
-      border: 1px solid #d1d5db;
-      padding: 9px 18px;
-      font-size: 0.92rem;
+      border: 1px solid transparent;
+      padding: 10px 22px;
+      font-size: 0.94rem;
+      font-weight: 600;
       cursor: pointer;
-      background: #ffffff;
-      color: #111827;
-      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-    }
-    .sdid-login-actions button:hover {
-      background: #eef2ff;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      white-space: nowrap;
     }
     .sdid-login-actions button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.26);
+    }
+    .sdid-login-cancel {
+      background: #eef2ff;
+      color: #1d4ed8;
+      border-color: #eef2ff;
+    }
+    .sdid-login-cancel:hover,
+    .sdid-login-cancel:focus-visible {
+      background: #e0e7ff;
+      border-color: #e0e7ff;
+      color: #1e40af;
     }
     .sdid-login-confirm {
-      background: #2563eb;
-      border-color: #2563eb;
+      background: #1d4ed8;
+      border-color: #1d4ed8;
       color: #ffffff;
-      font-weight: 600;
+      box-shadow: 0 14px 24px rgba(29, 78, 216, 0.25);
     }
     .sdid-login-confirm:hover,
     .sdid-login-confirm:focus-visible {
-      background: #1d4ed8;
+      background: #1e40af;
+      border-color: #1e40af;
       color: #ffffff;
     }
-    .sdid-login-cancel {
-      color: #2563eb;
-    }
-    @media (max-width: 480px) {
+    @media (max-width: 520px) {
       .sdid-login-dialog {
-        padding: 20px;
+        padding: 24px 20px;
         width: calc(100% - 24px);
+        gap: 18px;
       }
       .sdid-login-header {
         flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .sdid-login-header-main {
         align-items: flex-start;
-        gap: 8px;
       }
       .sdid-language-switch {
         align-self: flex-start;
       }
       .sdid-login-actions {
-        flex-direction: column-reverse;
+        flex-direction: column;
         align-items: stretch;
       }
       .sdid-login-actions button {

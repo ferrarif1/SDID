@@ -845,6 +845,7 @@ async function handleLoginRequest(event) {
   }
 }
 
+
 function injectPageBridge() {
   try {
     const existingBridge = document.querySelector('script[data-sdid-bridge="true"]');
@@ -891,7 +892,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 window.addEventListener('message', handleLoginRequest);
-injectPageBridge();
 
 (function applyStyles() {
   const styleId = 'sdid-identity-style';

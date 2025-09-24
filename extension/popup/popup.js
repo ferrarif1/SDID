@@ -62,6 +62,11 @@ function getContentScriptId(pattern) {
   return `sdid_bridge_${sanitized.slice(0, 120)}`;
 }
 
+function getMainWorldScriptId(pattern) {
+  const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  return `sdid_bridge_page_${sanitized.slice(0, 116)}`;
+}
+
 function normalizeIdentity(raw) {
   if (!raw || typeof raw !== 'object') {
     return null;
@@ -174,8 +179,9 @@ async function ensureContentScriptRegistration(originPattern) {
     return;
   }
   const scriptId = getContentScriptId(originPattern);
+  const pageScriptId = getMainWorldScriptId(originPattern);
   try {
-    await chrome.scripting.unregisterContentScripts({ ids: [scriptId] });
+    await chrome.scripting.unregisterContentScripts({ ids: [scriptId, pageScriptId] });
   } catch (error) {
     const message = String(error?.message || '');
     if (!/no\sregistered\scontent\sscript/i.test(message) && !/invalid\sscript\sid/i.test(message)) {
@@ -187,7 +193,16 @@ async function ensureContentScriptRegistration(originPattern) {
       id: scriptId,
       js: ['contentScript.js'],
       matches: [originPattern],
-      runAt: 'document_start'
+      runAt: 'document_start',
+      persistAcrossSessions: true
+    },
+    {
+      id: pageScriptId,
+      js: ['pageBridge.js'],
+      matches: [originPattern],
+      runAt: 'document_start',
+      world: 'MAIN',
+      persistAcrossSessions: true
     }
   ]);
 }
@@ -204,11 +219,25 @@ async function ensureBridgeInjectedIntoActiveTab() {
     alreadyInjected = false;
   }
   if (alreadyInjected) {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: activeTabId },
+        files: ['pageBridge.js'],
+        world: 'MAIN'
+      });
+    } catch (error) {
+      console.warn('Unable to refresh SDID page bridge', error);
+    }
     return;
   }
   await chrome.scripting.executeScript({
     target: { tabId: activeTabId },
     files: ['contentScript.js']
+  });
+  await chrome.scripting.executeScript({
+    target: { tabId: activeTabId },
+    files: ['pageBridge.js'],
+    world: 'MAIN'
   });
 }
 

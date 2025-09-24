@@ -845,6 +845,39 @@ async function handleLoginRequest(event) {
   }
 }
 
+
+function injectPageBridge() {
+  try {
+    const existingBridge = document.querySelector('script[data-sdid-bridge="true"]');
+    if (existingBridge) {
+      existingBridge.remove();
+    }
+    const bridgeScript = document.createElement('script');
+    bridgeScript.dataset.sdidBridge = 'true';
+    bridgeScript.dataset.requestEvent = LOGIN_REQUEST_EVENT;
+    bridgeScript.dataset.resultEvent = LOGIN_RESULT_EVENT;
+    bridgeScript.src = chrome.runtime.getURL('pageBridge.js');
+    bridgeScript.addEventListener(
+      'load',
+      () => {
+        bridgeScript.remove();
+      },
+      { once: true }
+    );
+    bridgeScript.addEventListener(
+      'error',
+      (event) => {
+        console.warn('Failed to inject SDID bridge', event);
+        bridgeScript.remove();
+      },
+      { once: true }
+    );
+    (document.head || document.documentElement).appendChild(bridgeScript);
+  } catch (error) {
+    console.warn('Failed to inject SDID bridge', error);
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'fill-identity') {
     const outcome = fillIdentity(message.identity);

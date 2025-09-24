@@ -6,6 +6,11 @@ function getContentScriptId(pattern) {
   return `sdid_bridge_${sanitized.slice(0, 120)}`;
 }
 
+function getMainWorldScriptId(pattern) {
+  const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  return `sdid_bridge_page_${sanitized.slice(0, 116)}`;
+}
+
 function isValidOriginPattern(pattern) {
   return typeof pattern === 'string' && /^https?:\/\//i.test(pattern);
 }
@@ -19,8 +24,9 @@ async function registerBridgeForOrigins(origins = []) {
       continue;
     }
     const scriptId = getContentScriptId(originPattern);
+    const pageScriptId = getMainWorldScriptId(originPattern);
     try {
-      await chrome.scripting.unregisterContentScripts({ ids: [scriptId] });
+      await chrome.scripting.unregisterContentScripts({ ids: [scriptId, pageScriptId] });
     } catch (error) {
       const message = String(error?.message || '');
       if (!/no\sregistered\scontent\sscript/i.test(message) && !/invalid\sscript\sid/i.test(message)) {
@@ -33,7 +39,16 @@ async function registerBridgeForOrigins(origins = []) {
           id: scriptId,
           js: ['contentScript.js'],
           matches: [originPattern],
-          runAt: 'document_start'
+          runAt: 'document_start',
+          persistAcrossSessions: true
+        },
+        {
+          id: pageScriptId,
+          js: ['pageBridge.js'],
+          matches: [originPattern],
+          runAt: 'document_start',
+          world: 'MAIN',
+          persistAcrossSessions: true
         }
       ]);
     } catch (error) {
@@ -51,8 +66,9 @@ async function unregisterBridgeForOrigins(origins = []) {
       continue;
     }
     const scriptId = getContentScriptId(originPattern);
+    const pageScriptId = getMainWorldScriptId(originPattern);
     try {
-      await chrome.scripting.unregisterContentScripts({ ids: [scriptId] });
+      await chrome.scripting.unregisterContentScripts({ ids: [scriptId, pageScriptId] });
     } catch (error) {
       const message = String(error?.message || '');
       if (!/no\sregistered\scontent\sscript/i.test(message) && !/invalid\sscript\sid/i.test(message)) {

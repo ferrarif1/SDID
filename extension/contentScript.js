@@ -845,65 +845,6 @@ async function handleLoginRequest(event) {
   }
 }
 
-function injectPageBridge() {
-  try {
-    const bridgeScript = document.createElement('script');
-    bridgeScript.textContent = `(() => {
-      const REQUEST_EVENT = '${LOGIN_REQUEST_EVENT}';
-      const RESULT_EVENT = '${LOGIN_RESULT_EVENT}';
-      if (window.SDID?.requestLogin) {
-        return;
-      }
-      window.SDID = window.SDID || {};
-      window.SDID.requestLogin = function requestLogin(options = {}) {
-        const opts = typeof options === 'object' && options !== null ? options : {};
-        const requestId = opts.requestId || ('sdid-' + Date.now().toString(16) + '-' + Math.random().toString(16).slice(2));
-        const message = typeof opts.message === 'string' ? opts.message : null;
-        const identityId = typeof opts.identityId === 'string' ? opts.identityId : null;
-        const timeoutMs = Number.isFinite(opts.timeoutMs) && opts.timeoutMs > 0 ? opts.timeoutMs : 0;
-        const challenge = typeof opts.challenge === 'string' ? opts.challenge : null;
-        const forcePrompt = Boolean(opts.forcePrompt);
-
-        return new Promise((resolve, reject) => {
-          let timeoutHandle;
-          const handleResponse = (event) => {
-            if (event.source !== window || !event.data || event.data.type !== RESULT_EVENT) {
-              return;
-            }
-            if (event.data.requestId !== requestId) {
-              return;
-            }
-            window.removeEventListener('message', handleResponse);
-            if (timeoutHandle) {
-              clearTimeout(timeoutHandle);
-            }
-            if (event.data.success) {
-              resolve(event.data);
-            } else {
-              reject(event.data);
-            }
-          };
-
-          window.addEventListener('message', handleResponse);
-          window.postMessage({ type: REQUEST_EVENT, requestId, message, identityId, challenge, forcePrompt }, '*');
-
-          if (timeoutMs) {
-            timeoutHandle = window.setTimeout(() => {
-              window.removeEventListener('message', handleResponse);
-              reject({ success: false, error: 'TIMEOUT', message: 'SDID request timed out', requestId });
-            }, timeoutMs);
-          }
-        });
-      };
-      window.dispatchEvent(new Event('sdid#initialized'));
-    })();`;
-    (document.head || document.documentElement).appendChild(bridgeScript);
-    bridgeScript.remove();
-  } catch (error) {
-    console.warn('Failed to inject SDID bridge', error);
-  }
-}
-
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'fill-identity') {
     const outcome = fillIdentity(message.identity);
@@ -918,7 +859,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 window.addEventListener('message', handleLoginRequest);
-injectPageBridge();
 
 (function applyStyles() {
   const styleId = 'sdid-identity-style';

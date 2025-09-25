@@ -720,7 +720,7 @@ function createOverlayLanguageSwitch() {
   };
 }
 
-function createLoginOverlay(identities, initialId, requestOrigin, requestMessage) {
+function createLoginOverlay(identities, initialId, requestOrigin, requestMessage, requestChallenge, requestId) {
   return new Promise((resolve, reject) => {
     const requestedAt = new Date();
 
@@ -784,6 +784,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     detailList.className = 'sdid-login-detail-list';
     dialog.appendChild(detailList);
 
+
     function createDetailItem(list, iconName) {
       const item = document.createElement('li');
       item.className = 'sdid-login-detail-item';
@@ -816,6 +817,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       return { item, label, value };
     }
 
+
     const detailItems = {
       site: createDetailItem(detailList, 'site'),
       time: createDetailItem(detailList, 'time'),
@@ -837,6 +839,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       selectLabel.appendChild(select);
       dialog.appendChild(selectLabel);
     }
+
 
     const actions = document.createElement('div');
     actions.className = 'sdid-login-actions';
@@ -910,6 +913,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         return;
       }
 
+
       const identityLabel = identity.label || identity.username || translateText('common.untitledIdentity');
       detailItems.identity.value.textContent = identityLabel;
       detailItems.identity.item.hidden = false;
@@ -920,6 +924,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       } else {
         detailItems.did.value.textContent = '';
         detailItems.did.item.hidden = true;
+
       }
     };
 
@@ -942,6 +947,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       detailItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
       detailItems.identity.label.textContent = translateText('content.overlay.summaryIdentity');
       detailItems.did.label.textContent = translateText('content.overlay.summaryDid');
+
 
       if (selectLabel && selectTitle) {
         selectTitle.textContent = translateText('content.overlay.chooseIdentity');
@@ -1276,7 +1282,44 @@ window.addEventListener('message', handleLoginRequest);
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
+    }
+    .sdid-login-header-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sdid-login-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      background: #eef2ff;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sdid-login-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+    .sdid-login-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sdid-login-header-text h2 {
+      margin: 0;
+      font-size: 1.28rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .sdid-login-subtitle {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #475569;
+      line-height: 1.35;
     }
     .sdid-login-header-main {
       display: flex;
@@ -1344,6 +1387,7 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-language-switch button:focus-visible {
       outline: none;
+
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.24);
     }
     .sdid-login-message {

@@ -754,6 +754,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     headerText.className = 'sdid-login-header-text';
 
     const title = document.createElement('h2');
+    title.id = `${LOGIN_OVERLAY_ID}-title`;
     headerText.appendChild(title);
 
     const subtitle = document.createElement('p');
@@ -768,20 +769,23 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       header.appendChild(languageSwitchControl.container);
     }
 
+    dialog.setAttribute('aria-labelledby', title.id);
     dialog.appendChild(header);
 
+    let message = null;
     if (requestMessage) {
-      const message = document.createElement('p');
+      message = document.createElement('p');
       message.className = 'sdid-login-message';
-      message.textContent = `${requestMessage}`;
+      message.textContent = requestMessage;
       dialog.appendChild(message);
     }
 
-    const sections = document.createElement('div');
-    sections.className = 'sdid-login-sections';
-    dialog.appendChild(sections);
+    const detailList = document.createElement('ul');
+    detailList.className = 'sdid-login-detail-list';
+    dialog.appendChild(detailList);
 
-    function createDetailItem(list, iconName, labelText = '', valueText = '') {
+
+    function createDetailItem(list, iconName) {
       const item = document.createElement('li');
       item.className = 'sdid-login-detail-item';
 
@@ -801,12 +805,10 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
       const label = document.createElement('span');
       label.className = 'sdid-login-item-label';
-      label.textContent = labelText;
       textWrap.appendChild(label);
 
       const value = document.createElement('span');
       value.className = 'sdid-login-item-value';
-      value.textContent = valueText;
       textWrap.appendChild(value);
 
       item.appendChild(textWrap);
@@ -815,98 +817,29 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       return { item, label, value };
     }
 
-    const requestSection = document.createElement('section');
-    requestSection.className = 'sdid-login-section';
-    sections.appendChild(requestSection);
 
-    const requestTitle = document.createElement('h3');
-    requestTitle.className = 'sdid-login-section-title';
-    requestSection.appendChild(requestTitle);
-
-    const requestList = document.createElement('ul');
-    requestList.className = 'sdid-login-detail-list';
-    requestSection.appendChild(requestList);
-
-    const requestItems = {
-      site: createDetailItem(requestList, 'site'),
-      time: createDetailItem(requestList, 'time'),
-      requestId: createDetailItem(requestList, 'hash'),
-      challenge: createDetailItem(requestList, 'shield')
+    const detailItems = {
+      site: createDetailItem(detailList, 'site'),
+      time: createDetailItem(detailList, 'time'),
+      identity: createDetailItem(detailList, 'identity'),
+      did: createDetailItem(detailList, 'did')
     };
 
-    if (!requestOrigin) {
-      requestItems.site.item.hidden = true;
-    } else {
-      requestItems.site.value.textContent = requestOrigin;
-
-    }
-
-    if (!requestId) {
-      requestItems.requestId.item.hidden = true;
-    } else {
-      requestItems.requestId.value.textContent = requestId;
-    }
-
-    if (!requestChallenge) {
-      requestItems.challenge.item.hidden = true;
-    } else {
-      requestItems.challenge.value.textContent = requestChallenge;
-    }
-
-    const identitySection = document.createElement('section');
-    identitySection.className = 'sdid-login-section';
-    sections.appendChild(identitySection);
-
-    const identityTitle = document.createElement('h3');
-    identityTitle.className = 'sdid-login-section-title';
-    identitySection.appendChild(identityTitle);
-
-    const selectLabel = document.createElement('label');
-    selectLabel.className = 'sdid-login-select';
-
-    const selectTitle = document.createElement('span');
-    selectLabel.appendChild(selectTitle);
-
+    let selectLabel = null;
+    let selectTitle = null;
     const select = document.createElement('select');
-    identities.forEach((identity) => {
-      const option = document.createElement('option');
-      option.value = identity.id;
-      option.textContent = identity.label || identity.username || translateText('common.untitledIdentity');
-      if (identity.id === initialId) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    });
 
-    if (identities.length <= 1) {
-      select.disabled = identities.length === 1;
+    const showIdentitySelector = identities.length > 1;
+    if (showIdentitySelector) {
+      selectLabel = document.createElement('label');
+      selectLabel.className = 'sdid-login-select';
+
+      selectTitle = document.createElement('span');
+      selectLabel.appendChild(selectTitle);
+      selectLabel.appendChild(select);
+      dialog.appendChild(selectLabel);
     }
 
-    selectLabel.appendChild(select);
-    identitySection.appendChild(selectLabel);
-
-    const summary = document.createElement('ul');
-    summary.className = 'sdid-login-detail-list sdid-login-summary';
-    identitySection.appendChild(summary);
-
-    const rememberWrapper = document.createElement('label');
-    rememberWrapper.className = 'sdid-login-remember';
-    rememberWrapper.hidden = !requestOrigin;
-
-    const rememberCheckbox = document.createElement('input');
-    rememberCheckbox.type = 'checkbox';
-    rememberCheckbox.checked = true;
-    rememberWrapper.appendChild(rememberCheckbox);
-
-    const rememberText = document.createElement('span');
-    rememberWrapper.appendChild(rememberText);
-    identitySection.appendChild(rememberWrapper);
-
-    const rememberHint = document.createElement('p');
-    rememberHint.className = 'sdid-login-hint';
-    rememberHint.textContent = '';
-    rememberHint.hidden = !requestOrigin;
-    identitySection.appendChild(rememberHint);
 
     const actions = document.createElement('div');
     actions.className = 'sdid-login-actions';
@@ -930,8 +863,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
     let settled = false;
     let detachLanguageListener = null;
-    let rememberDirty = false;
-    let lastSummaryIdentityId = null;
 
     const cleanup = (result, shouldReject = false) => {
       if (settled) {
@@ -956,149 +887,80 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       }
     };
 
-    function updateSummary(identityId) {
-      const identity = identities.find((item) => item.id === identityId);
-      summary.innerHTML = '';
-      if (!identity) {
-        rememberDirty = false;
-        if (requestOrigin) {
-          rememberCheckbox.checked = true;
+    const getSelectedIdentityId = () => select.value || initialId || identities[0]?.id || null;
+
+    const refreshSelectOptions = () => {
+      select.innerHTML = '';
+      identities.forEach((identity) => {
+        const option = document.createElement('option');
+        option.value = identity.id;
+        option.textContent = identity.label || identity.username || translateText('common.untitledIdentity');
+        if (identity.id === initialId) {
+          option.selected = true;
         }
-        rememberHint.textContent = '';
-        lastSummaryIdentityId = null;
+        select.appendChild(option);
+      });
+      if (!select.value && identities[0]) {
+        select.value = identities[0].id;
+      }
+    };
+
+    const updateIdentityDetails = (identityId) => {
+      const identity = identities.find((item) => item.id === identityId) || identities[0] || null;
+      if (!identity) {
+        detailItems.identity.item.hidden = true;
+        detailItems.did.item.hidden = true;
         return;
       }
-      const identityChanged = identity.id !== lastSummaryIdentityId;
-      if (identityChanged) {
-        rememberDirty = false;
-      }
 
-      const addDetail = (icon, labelKey, value) => {
-        if (!value) {
-          return;
-        }
-        createDetailItem(summary, icon, translateText(labelKey), value);
-      };
 
-      const identityLabel = identity.label || translateText('common.untitledIdentity');
-      addDetail('identity', 'content.overlay.summaryIdentity', identityLabel);
+      const identityLabel = identity.label || identity.username || translateText('common.untitledIdentity');
+      detailItems.identity.value.textContent = identityLabel;
+      detailItems.identity.item.hidden = false;
+
       if (identity.did) {
-        addDetail('did', 'content.overlay.summaryDid', identity.did);
-      }
-      const verificationMethod = getVerificationMethodId(identity);
-      if (verificationMethod) {
-        addDetail('key', 'content.overlay.summaryVerification', verificationMethod);
-      }
-      const keyTypeLabel = getKeyTypeLabel(identity.publicKeyJwk);
-      if (keyTypeLabel) {
-        addDetail('shield', 'content.overlay.summaryKeyType', keyTypeLabel);
-
-      }
-      if (identity.roles?.length) {
-        addDetail('roles', 'content.overlay.summaryRoles', identity.roles.join(', '));
-      }
-      if (identity.domain) {
-        addDetail('domain', 'content.overlay.summaryDomain', identity.domain);
-      }
-      if (identity.username) {
-        addDetail('user', 'content.overlay.summaryUsername', identity.username);
-      }
-      if (identity.tags?.length) {
-        addDetail('tag', 'content.overlay.summaryTags', identity.tags.join(', '));
-      }
-      if (identity.notes) {
-        addDetail('notes', 'content.overlay.summaryNotes', identity.notes);
-      }
-
-      if (requestOrigin) {
-        const authorized = isOriginAuthorized(identity, requestOrigin);
-        if (!rememberDirty) {
-          rememberCheckbox.checked = true;
-        }
-        rememberHint.textContent = authorized
-          ? translateText('content.overlay.rememberAuthorized')
-          : translateText('content.overlay.rememberHint');
-        rememberHint.hidden = false;
+        detailItems.did.value.textContent = identity.did;
+        detailItems.did.item.hidden = false;
       } else {
-        rememberHint.textContent = '';
-        rememberHint.hidden = true;
+        detailItems.did.value.textContent = '';
+        detailItems.did.item.hidden = true;
+
       }
-      lastSummaryIdentityId = identity.id;
-    }
+    };
 
-    function refreshSelectOptions() {
-      Array.from(select.options).forEach((option) => {
-        const identity = identities.find((item) => item.id === option.value);
-        if (!identity) {
-          return;
-        }
-        option.textContent = identity.label || identity.username || translateText('common.untitledIdentity');
-      });
-    }
-
-    function refreshOverlayText() {
+    const refreshOverlayText = () => {
       const activeLang = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
-      dialog.setAttribute('aria-label', translateText('content.overlay.title'));
       title.textContent = translateText('content.overlay.title');
       subtitle.textContent = translateText('content.overlay.subtitle');
-      if (languageSwitchControl) {
-        languageSwitchControl.setLabels();
-        languageSwitchControl.setActive(activeLang);
+      if (message) {
+        message.textContent = requestMessage;
       }
-      requestTitle.textContent = translateText('content.overlay.sectionRequest');
-      identityTitle.textContent = translateText('content.overlay.sectionIdentity');
-      requestItems.site.label.textContent = translateText('content.overlay.summarySite');
-      requestItems.time.label.textContent = translateText('content.overlay.summaryTime');
-      requestItems.requestId.label.textContent = translateText('content.overlay.summaryRequestId');
-      requestItems.challenge.label.textContent = translateText('content.overlay.summaryChallenge');
+      detailItems.site.label.textContent = translateText('content.overlay.summarySite');
       if (requestOrigin) {
-        requestItems.site.value.textContent = requestOrigin;
-        requestItems.site.item.hidden = false;
+        detailItems.site.value.textContent = requestOrigin;
+        detailItems.site.item.hidden = false;
       } else {
-        requestItems.site.value.textContent = '';
-        requestItems.site.item.hidden = true;
+        detailItems.site.value.textContent = '';
+        detailItems.site.item.hidden = true;
       }
-      requestItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
-      if (requestId) {
-        requestItems.requestId.value.textContent = requestId;
-        requestItems.requestId.item.hidden = false;
-      } else {
-        requestItems.requestId.value.textContent = '';
-        requestItems.requestId.item.hidden = true;
+      detailItems.time.label.textContent = translateText('content.overlay.summaryTime');
+      detailItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
+      detailItems.identity.label.textContent = translateText('content.overlay.summaryIdentity');
+      detailItems.did.label.textContent = translateText('content.overlay.summaryDid');
+
+
+      if (selectLabel && selectTitle) {
+        selectTitle.textContent = translateText('content.overlay.chooseIdentity');
       }
-      if (requestChallenge) {
-        requestItems.challenge.value.textContent = requestChallenge;
-        requestItems.challenge.item.hidden = false;
-      } else {
-        requestItems.challenge.value.textContent = '';
-        requestItems.challenge.item.hidden = true;
-      }
-      requestItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
-      selectTitle.textContent = translateText('content.overlay.chooseIdentity');
-      rememberText.textContent = translateText('content.overlay.remember');
+
       cancelButton.textContent = translateText('common.cancel');
       confirmButton.textContent = translateText('common.confirm');
+
       refreshSelectOptions();
-      updateSummary(select.value || identities[0]?.id);
-    }
+      updateIdentityDetails(getSelectedIdentityId());
+    };
 
-    const activeLanguage = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
-    if (languageSwitchControl) {
-      languageSwitchControl.setActive(activeLanguage);
-    }
     refreshOverlayText();
-
-    const initialFocusTarget = identities.length === 1 ? confirmButton : select;
-    initialFocusTarget.focus({ preventScroll: true });
-
-    select.addEventListener('change', (event) => {
-      rememberDirty = false;
-      updateSummary(event.target.value);
-    });
-
-    rememberCheckbox.addEventListener('change', () => {
-      rememberDirty = true;
-    });
 
     const handleKeydown = (event) => {
       if (event.key === 'Escape') {
@@ -1119,8 +981,22 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       });
     }
 
+    if (showIdentitySelector) {
+      select.addEventListener('change', (event) => {
+        updateIdentityDetails(event.target.value);
+      });
+    }
+
+    const activeLanguage = typeof i18nApi?.getLanguage === 'function' ? i18nApi.getLanguage() : currentLanguage;
+    if (languageSwitchControl) {
+      languageSwitchControl.setActive(activeLanguage);
+    }
+
+    const initialFocusTarget = showIdentitySelector ? select : confirmButton;
+    initialFocusTarget.focus({ preventScroll: true });
+
     confirmButton.addEventListener('click', () => {
-      cleanup({ identityId: select.value || identities[0]?.id, remember: rememberCheckbox.checked });
+      cleanup({ identityId: getSelectedIdentityId() });
     });
 
     cancelButton.addEventListener('click', () => {
@@ -1266,9 +1142,7 @@ async function handleLoginRequest(event) {
       identities,
       initialIdentity?.id,
       origin,
-      requestMessage,
-      challenge,
-      requestId
+      requestMessage
     );
 
     const identityId = selection?.identityId ?? initialIdentity?.id;
@@ -1288,7 +1162,7 @@ async function handleLoginRequest(event) {
       return;
     }
 
-    const rememberDecision = selection?.remember ?? true;
+    const rememberDecision = selection?.remember ?? false;
 
     await finalizeAuthorization({
       identity: chosen,
@@ -1385,22 +1259,24 @@ window.addEventListener('message', handleLoginRequest);
       inset: 0;
       z-index: 2147483647;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(15, 23, 42, 0.28);
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.12);
       font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif;
     }
     .sdid-login-dialog {
       background: #ffffff;
       color: #0f172a;
-      width: min(460px, calc(100% - 32px));
-      border-radius: 20px;
+      width: min(340px, calc(100% - 32px));
+      border-radius: 18px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 28px 48px rgba(15, 23, 42, 0.18);
-      padding: 28px;
+      box-shadow: 0 24px 40px rgba(15, 23, 42, 0.16);
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
+      pointer-events: auto;
     }
     .sdid-login-header {
       display: flex;
@@ -1445,11 +1321,48 @@ window.addEventListener('message', handleLoginRequest);
       color: #475569;
       line-height: 1.35;
     }
+    .sdid-login-header-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sdid-login-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      background: #eef2ff;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sdid-login-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+    .sdid-login-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sdid-login-header-text h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .sdid-login-subtitle {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.35;
+    }
     .sdid-language-switch {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px;
+      gap: 4px;
+      padding: 3px;
       border-radius: 999px;
       border: 1px solid #e2e8f0;
       background: #f8fafc;
@@ -1458,8 +1371,8 @@ window.addEventListener('message', handleLoginRequest);
       border: none;
       background: transparent;
       border-radius: 999px;
-      padding: 4px 11px;
-      font-size: 0.76rem;
+      padding: 4px 10px;
+      font-size: 0.72rem;
       font-weight: 600;
       color: #64748b;
       cursor: pointer;
@@ -1474,58 +1387,36 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-language-switch button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
+
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.24);
     }
     .sdid-login-message {
       margin: 0;
-      padding: 14px 16px;
-      border-radius: 16px;
+      padding: 12px 14px;
+      border-radius: 14px;
       background: #f8fafc;
       color: #334155;
-      font-size: 0.95rem;
-      line-height: 1.45;
-      word-break: break-word;
-    }
-    .sdid-login-sections {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .sdid-login-section {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .sdid-login-section-title {
-      margin: 0;
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #64748b;
-      font-weight: 600;
+      font-size: 0.88rem;
+      line-height: 1.4;
     }
     .sdid-login-detail-list {
       list-style: none;
-      padding: 0;
       margin: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
     .sdid-login-detail-item {
       display: flex;
+      gap: 10px;
       align-items: flex-start;
-      gap: 12px;
     }
     .sdid-login-item-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      background: #e9efff;
+      width: 28px;
+      height: 28px;
+      border-radius: 12px;
+      background: #f1f5f9;
       color: #1d4ed8;
       display: flex;
       align-items: center;
@@ -1533,25 +1424,23 @@ window.addEventListener('message', handleLoginRequest);
       flex-shrink: 0;
     }
     .sdid-login-item-icon svg {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
     }
     .sdid-login-item-text {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-      flex: 1;
+      gap: 2px;
     }
     .sdid-login-item-label {
-      font-size: 0.78rem;
-      letter-spacing: 0.06em;
+      font-size: 0.74rem;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
       color: #64748b;
       font-weight: 600;
     }
     .sdid-login-item-value {
-      font-size: 0.94rem;
+      font-size: 0.9rem;
       color: #0f172a;
       line-height: 1.4;
       word-break: break-word;
@@ -1559,18 +1448,18 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-login-select {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .sdid-login-select > span {
-      font-size: 0.88rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      color: #0f172a;
+      color: #1e293b;
     }
     .sdid-login-select select {
       border: 1px solid #dbe2f3;
       border-radius: 12px;
-      padding: 9px 12px;
-      font-size: 0.95rem;
+      padding: 8px 12px;
+      font-size: 0.9rem;
       background: #ffffff;
       color: #0f172a;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -1578,38 +1467,19 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-login-select select:focus-visible {
       outline: none;
       border-color: #1d4ed8;
-      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
-    }
-    .sdid-login-remember {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #1e293b;
-    }
-    .sdid-login-remember input {
-      width: 18px;
-      height: 18px;
-      accent-color: #1d4ed8;
-    }
-    .sdid-login-hint {
-      margin: 0;
-      font-size: 0.78rem;
-      color: #64748b;
-      line-height: 1.4;
+      box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.18);
     }
     .sdid-login-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .sdid-login-actions button {
       border-radius: 999px;
       border: 1px solid transparent;
-      padding: 10px 22px;
-      font-size: 0.94rem;
+      padding: 8px 18px;
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
@@ -1617,7 +1487,7 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-actions button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.26);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.24);
     }
     .sdid-login-cancel {
       background: #eef2ff;
@@ -1634,7 +1504,7 @@ window.addEventListener('message', handleLoginRequest);
       background: #1d4ed8;
       border-color: #1d4ed8;
       color: #ffffff;
-      box-shadow: 0 14px 24px rgba(29, 78, 216, 0.25);
+      box-shadow: 0 12px 22px rgba(29, 78, 216, 0.25);
     }
     .sdid-login-confirm:hover,
     .sdid-login-confirm:focus-visible {
@@ -1642,31 +1512,15 @@ window.addEventListener('message', handleLoginRequest);
       border-color: #1e40af;
       color: #ffffff;
     }
-    @media (max-width: 520px) {
+    @media (max-width: 600px) {
+      .sdid-login-overlay {
+        justify-content: center;
+        padding: 16px;
+      }
       .sdid-login-dialog {
-        padding: 24px 20px;
-        width: calc(100% - 24px);
-        gap: 18px;
-      }
-      .sdid-login-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-      }
-      .sdid-login-header-main {
-        align-items: flex-start;
-      }
-      .sdid-language-switch {
-        align-self: flex-start;
-      }
-      .sdid-login-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .sdid-login-actions button {
-        width: 100%;
+        width: min(360px, calc(100% - 24px));
       }
     }
-  `;
+`;
   document.documentElement.appendChild(style);
 })();

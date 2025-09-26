@@ -8,17 +8,17 @@
   --color-text: #1f1b16;
   --color-muted: #5e5a54;
   --color-subtle: #7b756d;
-  --color-border: rgba(129, 119, 105, 0.28);
-  --color-border-strong: rgba(129, 119, 105, 0.45);
-  --color-surface: rgba(248, 243, 234, 0.9);
-  --color-surface-strong: #f8f3ea;
+  --color-border: transparent;
+  --color-border-strong: transparent;
+  --color-surface: #ffffff;
+  --color-surface-strong: #ffffff;
   --color-accent: #1f1b16;
   --color-accent-soft: rgba(31, 27, 21, 0.08);
   --color-success: #2f6d46;
   --color-danger: #b9483c;
   --color-info: #6b6156;
-  --shadow-panel: 0 20px 48px rgba(33, 28, 21, 0.14);
-  --shadow-floating: 0 24px 44px rgba(33, 28, 21, 0.14);
+  --shadow-panel: none;
+  --shadow-floating: none;
   --transition-base: 180ms ease;
 }
 
@@ -31,7 +31,7 @@ body {
   flex-direction: column;
   gap: 14px;
   color: var(--color-text);
-  background: linear-gradient(180deg, #f4eee4 0%, #f9f6f0 100%);
+  background: #f7f6f4;
   position: relative;
   overflow: hidden;
 }
@@ -51,9 +51,7 @@ body > * {
 main,
 .app-footer {
   background: var(--color-surface-strong);
-  border: 1px solid var(--color-border-strong);
   border-radius: 22px;
-  box-shadow: var(--shadow-panel);
 }
 
 .app-header {
@@ -64,15 +62,6 @@ main,
   padding: 18px 20px 16px;
   position: relative;
   overflow: hidden;
-}
-
-.app-header::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(129, 119, 105, 0.18) 100%);
-  opacity: 0.55;
-  pointer-events: none;
 }
 
 .title-group {
@@ -109,11 +98,9 @@ main,
 
 .language-buttons {
   display: inline-flex;
-  background: rgba(249, 244, 234, 0.9);
+  background: rgba(244, 242, 237, 0.9);
   border-radius: 12px;
-  border: 1px solid var(--color-border);
   padding: 4px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 20px rgba(33, 28, 21, 0.1);
 }
 
 .language-buttons button {
@@ -125,7 +112,7 @@ main,
   padding: 4px 12px;
   border-radius: 999px;
   cursor: pointer;
-  transition: background-color var(--transition-base), color var(--transition-base), box-shadow var(--transition-base);
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 .language-buttons button:hover,
@@ -136,23 +123,20 @@ main,
 }
 
 .language-buttons button.active {
-  background: linear-gradient(180deg, #1f1b16 0%, #15110d 100%);
+  background: var(--color-accent);
   color: #f8f3ea;
-  box-shadow: 0 14px 22px rgba(31, 27, 21, 0.3);
 }
 
 button {
   font: inherit;
-  border-radius: 999px;
-  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  border: none;
   padding: 9px 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 236, 222, 0.9) 100%);
+  background: #efeee9;
   color: var(--color-text);
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base),
-    background-color var(--transition-base), color var(--transition-base);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 12px 22px rgba(33, 28, 21, 0.14);
+  transition: transform var(--transition-base), background-color var(--transition-base), color var(--transition-base);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -163,49 +147,40 @@ button {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 18px 28px rgba(33, 28, 21, 0.16);
 }
 
 button:active {
   transform: translateY(0);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 10px 18px rgba(33, 28, 21, 0.14);
 }
 
 button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(31, 27, 21, 0.2), 0 14px 26px rgba(33, 28, 21, 0.14);
 }
 
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
 }
 
 button.primary {
-  background: linear-gradient(135deg, #1f1b16 0%, #15110d 100%);
+  background: var(--color-accent);
   color: #f8f3ea;
-  border-color: rgba(31, 27, 21, 0.6);
-  box-shadow: 0 20px 36px rgba(31, 27, 21, 0.26);
 }
 
 button.primary:hover,
 button.primary:focus-visible {
-  background: linear-gradient(135deg, #15110d 0%, #0f0c08 100%);
+  background: #15110d;
 }
 
 button.secondary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(239, 229, 215, 0.9) 100%);
+  background: #efeee9;
   color: var(--color-muted);
-  border-color: var(--color-border-strong);
 }
 
 button.danger {
-  background: linear-gradient(180deg, rgba(249, 235, 231, 0.96) 0%, rgba(244, 214, 206, 0.9) 100%);
+  background: #f6e9e6;
   color: var(--color-danger);
-  border-color: rgba(196, 112, 97, 0.55);
-  box-shadow: 0 18px 28px rgba(150, 70, 56, 0.2);
 }
 
 button.ghost {
@@ -243,11 +218,9 @@ main::-webkit-scrollbar-thumb {
 
 .permission-banner {
   display: flex;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(239, 229, 215, 0.9) 100%);
-  border: 1px solid var(--color-border-strong);
+  background: #ffffff;
   border-radius: 18px;
   padding: 16px;
-  box-shadow: 0 18px 32px rgba(33, 28, 21, 0.14);
   animation: fadeInUp 0.28s ease both;
 }
 
@@ -281,7 +254,6 @@ main::-webkit-scrollbar-thumb {
   padding: 2px 8px;
   border-radius: 8px;
   background: rgba(226, 232, 240, 0.6);
-  border: 1px solid var(--color-border-strong);
   font-family: 'SFMono-Regular', 'JetBrains Mono', ui-monospace, 'Fira Code', monospace;
   font-size: 0.72rem;
   color: var(--color-info);
@@ -306,11 +278,10 @@ main::-webkit-scrollbar-thumb {
   width: 100%;
   padding: 10px 14px;
   border-radius: 14px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  background: rgba(236, 232, 225, 0.7);
   color: var(--color-text);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: background-color var(--transition-base), transform var(--transition-base);
 }
 
 .search input::placeholder {
@@ -319,8 +290,8 @@ main::-webkit-scrollbar-thumb {
 
 .search input:focus-visible {
   outline: none;
-  border-color: rgba(31, 27, 21, 0.6);
-  box-shadow: 0 0 0 3px rgba(31, 27, 21, 0.16);
+  transform: translateY(-1px);
+  background: rgba(236, 232, 225, 0.95);
 }
 
 .identity-list {
@@ -333,22 +304,19 @@ main::-webkit-scrollbar-thumb {
 }
 
 .identity-card {
-  border: 1px solid var(--color-border-strong);
   border-radius: 20px;
   padding: 16px;
-  background: linear-gradient(180deg, #fdfaf3 0%, rgba(248, 240, 226, 0.94) 100%);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: var(--shadow-floating);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  transition: transform var(--transition-base), background-color var(--transition-base);
   animation: fadeInUp 0.3s ease both;
 }
 
 .identity-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(31, 27, 21, 0.4);
-  box-shadow: 0 24px 36px rgba(33, 28, 21, 0.16);
+  background: #f4f2ee;
 }
 
 .identity-card h2 {
@@ -378,7 +346,6 @@ main::-webkit-scrollbar-thumb {
   padding: 6px 8px;
   border-radius: 10px;
   background: rgba(226, 232, 240, 0.45);
-  border: 1px solid var(--color-border);
   overflow-wrap: anywhere;
 }
 
@@ -429,7 +396,6 @@ main::-webkit-scrollbar-thumb {
   text-align: center;
   align-items: center;
   padding: 26px 16px;
-  border: 1px dashed rgba(148, 163, 184, 0.6);
   border-radius: 18px;
   background: rgba(226, 232, 240, 0.45);
   color: var(--color-muted);
@@ -489,6 +455,5 @@ main::-webkit-scrollbar-thumb {
   button:hover,
   .identity-card:hover {
     transform: none;
-    box-shadow: var(--shadow-floating);
   }
 }

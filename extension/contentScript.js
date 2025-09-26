@@ -787,7 +787,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     function createDetailItem(list, iconName) {
       const item = document.createElement('li');
       item.className = 'sdid-login-detail-item';
-
       const icon = document.createElement('span');
       icon.className = `sdid-login-item-icon icon-${iconName}`;
       icon.setAttribute('aria-hidden', 'true');
@@ -1278,9 +1277,8 @@ window.addEventListener('message', handleLoginRequest);
   style.id = styleId;
   style.textContent = `
     .sdid-identity-filled {
-      outline: 2px solid rgba(33, 28, 21, 0.28);
-      box-shadow: 0 0 0 4px rgba(244, 238, 228, 0.72);
-      transition: outline 0.3s ease, box-shadow 0.3s ease;
+      background: rgba(236, 232, 225, 0.6);
+      transition: background 0.3s ease;
     }
     .sdid-login-overlay {
       position: fixed;
@@ -1305,12 +1303,10 @@ window.addEventListener('message', handleLoginRequest);
       pointer-events: none;
     }
     .sdid-login-dialog {
-      background: #f8f3ea;
+      background: #ffffff;
       color: #1f1b16;
       width: min(360px, calc(100% - 32px));
       border-radius: 20px;
-      border: 1px solid rgba(96, 88, 78, 0.18);
-      box-shadow: 0 28px 48px rgba(33, 28, 21, 0.18);
       padding: 22px;
       display: flex;
       flex-direction: column;
@@ -1319,8 +1315,7 @@ window.addEventListener('message', handleLoginRequest);
       opacity: 0;
       transform: translate3d(12px, -12px, 0) scale(0.98);
       transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
-        transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 240ms ease;
+        transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .sdid-login-overlay-visible .sdid-login-dialog {
       opacity: 1;
@@ -1329,7 +1324,6 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-login-overlay-exit .sdid-login-dialog {
       opacity: 0;
       transform: translate3d(6px, -10px, 0) scale(0.97);
-      box-shadow: 0 20px 40px rgba(33, 28, 21, 0.14);
     }
     .sdid-login-header {
       display: flex;
@@ -1431,9 +1425,7 @@ window.addEventListener('message', handleLoginRequest);
       gap: 4px;
       padding: 4px;
       border-radius: 999px;
-      border: 1px solid rgba(128, 118, 106, 0.28);
-      background: rgba(249, 244, 234, 0.92);
-      box-shadow: 0 8px 18px rgba(33, 28, 21, 0.12);
+      background: rgba(244, 242, 237, 0.9);
     }
     .sdid-language-switch button {
       border: none;
@@ -1444,7 +1436,7 @@ window.addEventListener('message', handleLoginRequest);
       font-weight: 600;
       color: #7b756d;
       cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     .sdid-language-switch button:hover {
       color: #1f1b16;
@@ -1453,11 +1445,9 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-language-switch button.active {
       background: #1f1b16;
       color: #f8f3ea;
-      box-shadow: 0 10px 18px rgba(20, 17, 14, 0.24);
     }
     .sdid-language-switch button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(33, 28, 21, 0.24);
     }
     .sdid-login-message {
       margin: 0;
@@ -1483,12 +1473,11 @@ window.addEventListener('message', handleLoginRequest);
       padding: 10px 12px;
       border-radius: 16px;
       background: rgba(231, 222, 208, 0.65);
-      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+      transition: transform 0.22s ease, background 0.22s ease;
     }
     .sdid-login-detail-item:hover {
       transform: translateY(-1px);
       background: rgba(224, 213, 196, 0.85);
-      box-shadow: 0 14px 28px rgba(33, 28, 21, 0.12);
     }
     .sdid-login-item-icon {
       width: 30px;
@@ -1535,19 +1524,18 @@ window.addEventListener('message', handleLoginRequest);
       color: #1f1b16;
     }
     .sdid-login-select select {
-      border: 1px solid rgba(128, 118, 106, 0.45);
+      border: none;
       border-radius: 14px;
       padding: 10px 14px;
       font-size: 0.9rem;
-      background: #fdfaf3;
+      background: rgba(236, 232, 225, 0.7);
       color: #1f1b16;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      transition: background-color 0.2s ease, transform 0.2s ease;
     }
     .sdid-login-select select:focus-visible {
       outline: none;
-      border-color: rgba(33, 28, 21, 0.6);
-      box-shadow: 0 0 0 3px rgba(33, 28, 21, 0.16);
       transform: translateY(-1px);
+      background: rgba(236, 232, 225, 0.95);
     }
     .sdid-login-actions {
       display: flex;
@@ -1556,14 +1544,13 @@ window.addEventListener('message', handleLoginRequest);
       flex-wrap: wrap;
     }
     .sdid-login-actions button {
-      border-radius: 999px;
-      border: 1px solid transparent;
+      border-radius: 12px;
+      border: none;
       padding: 10px 20px;
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease,
-        color 0.2s ease;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
@@ -1573,63 +1560,30 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-actions button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(33, 28, 21, 0.2);
     }
     .sdid-login-actions button:active {
       transform: translateY(0);
     }
     .sdid-login-cancel {
-      background: rgba(232, 223, 209, 0.64);
+      background: #efeee9;
       color: #1f1b16;
-      border-color: rgba(129, 119, 105, 0.32);
     }
     .sdid-login-cancel:hover,
     .sdid-login-cancel:focus-visible {
-      background: rgba(224, 213, 196, 0.9);
-      border-color: rgba(33, 28, 21, 0.45);
+      background: #e7e5df;
       color: #1f1b16;
       transform: translateY(-1px);
     }
     .sdid-login-confirm {
-      background: linear-gradient(135deg, #1f1b16 0%, #16130f 100%);
-      border-color: rgba(22, 18, 14, 0.85);
+      background: #1f1b16;
       color: #f8f3ea;
-      box-shadow: 0 18px 36px rgba(33, 28, 21, 0.25);
       position: relative;
       overflow: hidden;
-    }
-    .sdid-login-confirm::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.4), transparent 55%);
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      pointer-events: none;
     }
     .sdid-login-confirm:hover,
     .sdid-login-confirm:focus-visible {
       transform: translateY(-1px);
-      box-shadow: 0 22px 38px rgba(33, 28, 21, 0.32);
-    }
-    .sdid-login-confirm:hover::after,
-    .sdid-login-confirm:focus-visible::after {
-      opacity: 1;
-    }
-    .sdid-login-overlay-visible .sdid-login-confirm {
-      animation: sdid-confirm-pulse 2.4s ease 0.18s 2;
-    }
-    @keyframes sdid-confirm-pulse {
-      0% {
-        box-shadow: 0 18px 36px rgba(33, 28, 21, 0.25);
-      }
-      50% {
-        box-shadow: 0 26px 44px rgba(20, 17, 14, 0.38);
-      }
-      100% {
-        box-shadow: 0 18px 36px rgba(33, 28, 21, 0.25);
-      }
+      background: #15110d;
     }
     @keyframes sdid-icon-pop {
       0% {

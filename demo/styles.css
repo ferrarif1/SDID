@@ -8,7 +8,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #f4eee4 0%, #f9f6f0 100%);
+  background: #f7f6f4;
   color: inherit;
   display: flex;
   flex-direction: column;
@@ -49,10 +49,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid rgba(129, 119, 105, 0.32);
   border-radius: 999px;
   padding: 4px;
-  background: #f8f3ea;
+  background: rgba(244, 242, 237, 0.9);
 }
 
 .language-switch button {
@@ -89,8 +88,7 @@ body {
 }
 
 .card {
-  background: #f8f3ea;
-  border: 1px solid rgba(129, 119, 105, 0.28);
+  background: #ffffff;
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -122,27 +120,26 @@ body {
 
 button {
   font: inherit;
-  border-radius: 999px;
-  border: 1px solid rgba(129, 119, 105, 0.32);
+  border-radius: 12px;
+  border: none;
   padding: 10px 18px;
-  background: #f8f3ea;
+  background: #efeee9;
   color: #1f1b16;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background: rgba(239, 229, 215, 0.9);
+  background: #e7e5df;
+  transform: translateY(-1px);
 }
 
 button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(31, 27, 21, 0.18);
 }
 
 button.primary {
   background: #1f1b16;
-  border-color: rgba(31, 27, 21, 0.6);
   color: #f8f3ea;
   font-weight: 600;
 }
@@ -154,13 +151,11 @@ button.primary:focus-visible {
 }
 
 button.secondary {
-  border-color: rgba(129, 119, 105, 0.32);
   color: #5e5a54;
 }
 
 button.secondary:hover,
 button.secondary:focus-visible {
-  border-color: rgba(31, 27, 21, 0.6);
   color: #1f1b16;
 }
 
@@ -199,7 +194,6 @@ button:disabled {
 pre {
   margin: 0;
   background: #f8fafc;
-  border: 1px solid rgba(129, 119, 105, 0.28);
   border-radius: 12px;
   padding: 16px;
   font-size: 0.85rem;
@@ -229,7 +223,6 @@ pre {
   text-align: center;
   color: #7b756d;
   font-size: 0.85rem;
-  border-top: 1px solid #e5e7eb;
   background: #f8f3ea;
 }
 

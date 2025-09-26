@@ -22,7 +22,7 @@ const translations = {
       title: 'How it works',
       step1: 'Install the SDID extension and create at least one DID identity.',
       step2: 'Click “Connect with SDID” to send a login request to the extension.',
-      step3: 'Approve and optionally remember this site for next time.',
+      step3: 'Approve the wallet-style prompt and optionally remember this site for next time.',
       step4: 'The demo verifies the signature using the returned public key.'
     },
     actions: {
@@ -71,7 +71,7 @@ const translations = {
       title: '操作流程',
       step1: '安装 SDID 扩展并创建至少一个 DID 身份。',
       step2: '点击“连接 SDID”向扩展发送登录请求。',
-      step3: '在确认弹窗中授权，可选择记住此站点以便下次快速通过。',
+      step3: '在类似钱包的确认弹窗中授权，可选择记住此站点以便下次快速通过。',
       step4: '演示应用会使用返回的公钥验证签名。'
     },
     actions: {

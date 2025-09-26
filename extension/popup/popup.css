@@ -27,7 +27,28 @@ body {
 body::before,
 body::after {
   content: '';
-  display: none;
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(48px);
+  opacity: 0.42;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  animation: ambientGlow 18s var(--sdid-ease-spring) infinite;
+}
+
+body::before {
+  top: -180px;
+  right: -160px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.88), rgba(235, 219, 204, 0.12));
+  animation-delay: -4s;
+}
+
+body::after {
+  bottom: -220px;
+  left: -200px;
+  background: radial-gradient(circle at 70% 70%, rgba(226, 210, 190, 0.58), rgba(224, 205, 188, 0));
 }
 
 body > * {
@@ -42,6 +63,8 @@ main,
   border: 1px solid var(--sdid-color-border);
   border-radius: var(--sdid-radius-card);
   box-shadow: var(--sdid-shadow-panel);
+  backdrop-filter: blur(12px);
+  transition: box-shadow var(--sdid-transition-slow), transform var(--sdid-transition-slow);
 }
 
 .app-header {
@@ -61,6 +84,22 @@ main,
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(235, 227, 214, 0.4) 100%);
   opacity: 0.55;
   pointer-events: none;
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  inset: 8px 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(243, 230, 213, 0.05) 100%);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--sdid-transition-slow);
+  pointer-events: none;
+}
+
+.app-header:hover::before,
+.app-header:focus-within::before {
+  opacity: 1;
 }
 
 .title-group {
@@ -85,6 +124,11 @@ main,
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--sdid-color-subtle);
+  max-width: 100%;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-actions {
@@ -102,6 +146,8 @@ main,
   border: 1px solid var(--sdid-color-border);
   padding: 4px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 8px 20px rgba(32, 28, 22, 0.08);
+  max-width: 130px;
+  overflow: hidden;
 }
 
 .language-buttons button {
@@ -114,6 +160,10 @@ main,
   border-radius: 999px;
   cursor: pointer;
   transition: background-color var(--sdid-transition-base), color var(--sdid-transition-base), box-shadow var(--sdid-transition-base);
+  min-width: 48px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .language-buttons button:hover,
@@ -150,6 +200,9 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+  position: relative;
+  isolation: isolate;
 }
 
 button:hover {
@@ -224,6 +277,8 @@ main {
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
+  scroll-padding-top: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 245, 238, 0.88) 100%);
 }
 
 main::-webkit-scrollbar {
@@ -243,6 +298,7 @@ main::-webkit-scrollbar-thumb {
   padding: 18px;
   box-shadow: var(--sdid-shadow-card);
   animation: fadeInUp 0.28s ease both;
+  gap: 16px;
 }
 
 .permission-content {
@@ -280,6 +336,10 @@ main::-webkit-scrollbar-thumb {
   font-size: 0.72rem;
   color: var(--sdid-color-info);
   overflow-wrap: anywhere;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search {
@@ -315,6 +375,7 @@ main::-webkit-scrollbar-thumb {
   outline: none;
   border-color: rgba(32, 28, 22, 0.6);
   box-shadow: 0 0 0 3px rgba(32, 28, 22, 0.12);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .identity-list {
@@ -337,6 +398,8 @@ main::-webkit-scrollbar-thumb {
   box-shadow: var(--sdid-shadow-floating);
   transition: transform var(--sdid-transition-slow), box-shadow var(--sdid-transition-slow), border-color var(--sdid-transition-slow);
   animation: sdid-fade-up 0.34s var(--sdid-ease-emph) both;
+  overflow: hidden;
+  position: relative;
 }
 
 .identity-card {
@@ -345,6 +408,22 @@ main::-webkit-scrollbar-thumb {
 .identity-card:hover {
   transform: translateY(-2px) scale(1.01);
   box-shadow: 0 28px 48px rgba(28, 24, 19, 0.18);
+}
+
+.identity-card::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--sdid-radius-card) - 6px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(245, 236, 223, 0.05) 100%);
+  opacity: 0;
+  transition: opacity var(--sdid-transition-slow);
+  pointer-events: none;
+}
+
+.identity-card:hover::before,
+.identity-card:focus-within::before {
+  opacity: 1;
 }
 
 .card-actions button {
@@ -388,6 +467,10 @@ main::-webkit-scrollbar-thumb {
   line-height: 1.5;
   color: var(--sdid-color-muted);
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .identity-meta {
@@ -407,6 +490,29 @@ main::-webkit-scrollbar-thumb {
   background: var(--sdid-color-accent-soft);
   border: 1px solid var(--sdid-color-border);
   overflow-wrap: anywhere;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+.identity-meta span::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  background: linear-gradient(90deg, rgba(243, 235, 225, 0), rgba(243, 235, 225, 0.95));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--sdid-transition-base);
+}
+
+.identity-meta span:hover::after,
+.identity-meta span:focus-visible::after {
+  opacity: 1;
 }
 
 .identity-meta .mono {
@@ -420,6 +526,10 @@ main::-webkit-scrollbar-thumb {
   line-height: 1.5;
   color: var(--sdid-color-muted);
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .identity-status {
@@ -431,6 +541,9 @@ main::-webkit-scrollbar-thumb {
   color: var(--sdid-color-accent);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .identity-status[data-state='authorized'] {
@@ -449,6 +562,10 @@ main::-webkit-scrollbar-thumb {
   gap: 10px;
 }
 
+.card-actions button {
+  flex: 1 1 calc(50% - 5px);
+}
+
 #empty-state {
   display: flex;
   flex-direction: column;
@@ -461,6 +578,7 @@ main::-webkit-scrollbar-thumb {
   background: rgba(242, 238, 232, 0.6);
   color: var(--sdid-color-muted);
   animation: fadeInUp 0.28s ease both;
+  backdrop-filter: blur(8px);
 }
 
 #empty-state .primary {
@@ -478,6 +596,8 @@ main::-webkit-scrollbar-thumb {
   min-height: 1em;
   color: var(--sdid-color-muted);
   transition: color var(--sdid-transition-base);
+  max-height: 3.2em;
+  overflow: hidden;
 }
 
 #status-message[data-state='error'] {
@@ -500,6 +620,18 @@ main::-webkit-scrollbar-thumb {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ambientGlow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-16px, 12px, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 

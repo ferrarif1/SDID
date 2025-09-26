@@ -130,7 +130,9 @@ const translations = {
         domain: 'Trusted domain:',
         roles: 'Roles:',
         did: 'DID:',
-        tags: 'Tags:'
+        tags: 'Tags:',
+        username: 'Username:',
+        notes: 'Notes:'
       },
       status: {
         authorized: 'Authorized for this site',
@@ -333,7 +335,9 @@ const translations = {
         domain: '信任域名：',
         roles: '角色：',
         did: 'DID：',
-        tags: '标签：'
+        tags: '标签：',
+        username: '用户名：',
+        notes: '备注：'
       },
       status: {
         authorized: '已授权当前站点',

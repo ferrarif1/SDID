@@ -118,19 +118,6 @@ main,
   letter-spacing: 0.02em;
 }
 
-.app-subtitle {
-  margin: 0;
-  font-size: 0.76rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--sdid-color-subtle);
-  max-width: 100%;
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .header-actions {
   display: flex;
   align-items: center;

@@ -654,21 +654,18 @@ async function createDemoIdentities() {
         label: translate('options.demo.labels.operationsAdmin'),
         roles: ['Admin', 'Approver'],
         domain: 'https://console.example.com',
-        notes: translate('options.demo.notes.operationsAdmin'),
         tags: ['core', 'operations']
       },
       {
         label: translate('options.demo.labels.financeSigner'),
         roles: ['Finance', 'Signer'],
         domain: 'https://billing.example.com',
-        notes: translate('options.demo.notes.financeSigner'),
         tags: ['finance']
       },
       {
         label: translate('options.demo.labels.developerSandbox'),
         roles: ['Developer'],
         domain: 'https://sandbox.example.dev',
-        notes: translate('options.demo.notes.developerSandbox'),
         tags: ['sandbox', 'dev'],
         authorizedOrigins: [
           {
@@ -695,7 +692,6 @@ async function createDemoIdentities() {
         username: '',
         password: '',
         tags: template.tags || [],
-        notes: template.notes,
         did,
         publicKeyJwk,
         privateKeyJwk,

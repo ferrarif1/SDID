@@ -116,6 +116,7 @@ const translations = {
       }
     },
     popup: {
+      subtitle: '',
       searchLabel: 'Find DID identity',
       searchPlaceholder: 'Search by name, DID, role or domain',
       empty: 'No decentralized identities yet. Create one to start approving dapp logins.',
@@ -313,6 +314,7 @@ const translations = {
       }
     },
     popup: {
+      subtitle: '',
       searchLabel: '搜索 DID 身份',
       searchPlaceholder: '支持名称、DID、角色或域名搜索',
       empty: '还没有去中心化身份，请先创建以便审批 dapp 登录请求。',

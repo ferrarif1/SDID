@@ -329,12 +329,7 @@ function renderCollection() {
 
     item.appendChild(meta);
 
-    if (identity.notes) {
-      const notes = document.createElement('p');
-      notes.textContent = identity.notes;
-      item.appendChild(notes);
-      registerTextFit(notes, { maxLines: 4 });
-    }
+    // Notes are intentionally omitted from the collection view to avoid showing seeded demo copy.
 
     if (identity.authorizedOrigins?.length) {
       const authorizedContainer = document.createElement('div');

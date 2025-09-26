@@ -720,7 +720,7 @@ function createOverlayLanguageSwitch() {
   };
 }
 
-function createLoginOverlay(identities, initialId, requestOrigin, requestMessage) {
+function createLoginOverlay(identities, initialId, requestOrigin, requestMessage, requestChallenge, requestId) {
   return new Promise((resolve, reject) => {
     const requestedAt = new Date();
 
@@ -798,6 +798,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         icon.textContent = '•';
       }
       item.appendChild(icon);
+
 
       const textWrap = document.createElement('div');
       textWrap.className = 'sdid-login-item-text';
@@ -1276,6 +1277,48 @@ window.addEventListener('message', handleLoginRequest);
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
+      gap: 16px;
+    }
+    .sdid-login-header-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sdid-login-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      background: #eef2ff;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sdid-login-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+    .sdid-login-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sdid-login-header-text h2 {
+      margin: 0;
+      font-size: 1.28rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .sdid-login-subtitle {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #475569;
+      line-height: 1.35;
+    }
+    .sdid-login-header-main {
+      display: flex;
+      align-items: center;
       gap: 12px;
     }
     .sdid-login-header-main {

@@ -810,17 +810,21 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       value.className = 'sdid-login-item-value';
       textWrap.appendChild(value);
 
+      const secondary = document.createElement('span');
+      secondary.className = 'sdid-login-item-subvalue';
+      secondary.hidden = true;
+      textWrap.appendChild(secondary);
+
       item.appendChild(textWrap);
       list.appendChild(item);
 
-      return { item, label, value };
+      return { item, label, value, secondary };
     }
 
     const detailItems = {
       site: createDetailItem(detailList, 'site'),
       time: createDetailItem(detailList, 'time'),
-      identity: createDetailItem(detailList, 'identity'),
-      did: createDetailItem(detailList, 'did')
+      identity: createDetailItem(detailList, 'identity')
     };
 
     let selectLabel = null;
@@ -939,7 +943,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       const identity = identities.find((item) => item.id === identityId) || identities[0] || null;
       if (!identity) {
         detailItems.identity.item.hidden = true;
-        detailItems.did.item.hidden = true;
         return;
       }
 
@@ -948,11 +951,11 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       detailItems.identity.item.hidden = false;
 
       if (identity.did) {
-        detailItems.did.value.textContent = identity.did;
-        detailItems.did.item.hidden = false;
+        detailItems.identity.secondary.textContent = identity.did;
+        detailItems.identity.secondary.hidden = false;
       } else {
-        detailItems.did.value.textContent = '';
-        detailItems.did.item.hidden = true;
+        detailItems.identity.secondary.textContent = '';
+        detailItems.identity.secondary.hidden = true;
       }
     };
 
@@ -974,7 +977,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       detailItems.time.label.textContent = translateText('content.overlay.summaryTime');
       detailItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
       detailItems.identity.label.textContent = translateText('content.overlay.summaryIdentity');
-      detailItems.did.label.textContent = translateText('content.overlay.summaryDid');
 
       if (selectLabel && selectTitle) {
         selectTitle.textContent = translateText('content.overlay.chooseIdentity');
@@ -1280,28 +1282,28 @@ window.addEventListener('message', handleLoginRequest);
   const cssVar = (name, fallback) => `var(${name}, ${fallback})`;
   const overlayTheme = {
     fontFamily: "var(--sdid-font-family, 'Inter', 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif)",
-    text: cssVar('--sdid-color-text', '#221f1a'),
-    muted: cssVar('--sdid-color-muted', '#5b564d'),
-    subtle: cssVar('--sdid-color-subtle', '#888379'),
-    border: cssVar('--sdid-color-border', '#e4e0d8'),
-    borderStrong: cssVar('--sdid-color-border-strong', '#d3cec4'),
+    text: cssVar('--sdid-color-text', '#241c14'),
+    muted: cssVar('--sdid-color-muted', '#63584c'),
+    subtle: cssVar('--sdid-color-subtle', '#968b7d'),
+    border: cssVar('--sdid-color-border', '#ece2d5'),
+    borderStrong: cssVar('--sdid-color-border-strong', '#e0d4c4'),
     surface: cssVar('--sdid-color-surface', '#ffffff'),
     surfaceStrong: cssVar('--sdid-color-surface-strong', '#ffffff'),
-    control: cssVar('--sdid-color-control', '#f7f6f2'),
-    controlStrong: cssVar('--sdid-color-control-strong', '#f2f0eb'),
-    controlActive: cssVar('--sdid-color-control-active', '#ece9e3'),
-    accent: cssVar('--sdid-color-accent', '#221f1a'),
-    accentStrong: cssVar('--sdid-color-accent-strong', '#181612'),
-    accentSoft: cssVar('--sdid-color-accent-soft', '#f2eee8'),
+    control: cssVar('--sdid-color-control', '#faf7f2'),
+    controlStrong: cssVar('--sdid-color-control-strong', '#f2ece4'),
+    controlActive: cssVar('--sdid-color-control-active', '#ebe4da'),
+    accent: cssVar('--sdid-color-accent', '#221b13'),
+    accentStrong: cssVar('--sdid-color-accent-strong', '#18120c'),
+    accentSoft: cssVar('--sdid-color-accent-soft', '#f3ebe1'),
     success: cssVar('--sdid-color-success', '#2f6d46'),
     danger: cssVar('--sdid-color-danger', '#c4554a'),
-    info: cssVar('--sdid-color-info', '#6b665d'),
-    overlayBackdrop: cssVar('--sdid-overlay-backdrop', 'rgba(34, 31, 26, 0.34)'),
-    overlayHighlight: cssVar('--sdid-overlay-highlight', 'rgba(255, 255, 255, 0.45)'),
-    shadowPanel: cssVar('--sdid-shadow-panel', '0 24px 48px rgba(28, 24, 19, 0.14)'),
-    shadowFloating: cssVar('--sdid-shadow-floating', '0 20px 40px rgba(28, 24, 19, 0.12)'),
-    shadowStrong: cssVar('--sdid-shadow-strong', '0 24px 42px rgba(28, 24, 19, 0.18)'),
-    shadowButton: cssVar('--sdid-shadow-button', '0 18px 32px rgba(28, 24, 19, 0.22)')
+    info: cssVar('--sdid-color-info', '#6f6458'),
+    overlayBackdrop: cssVar('--sdid-overlay-backdrop', 'rgba(26, 20, 15, 0.36)'),
+    overlayHighlight: cssVar('--sdid-overlay-highlight', 'rgba(255, 255, 255, 0.5)'),
+    shadowPanel: cssVar('--sdid-shadow-panel', '0 32px 60px rgba(30, 24, 18, 0.14)'),
+    shadowFloating: cssVar('--sdid-shadow-floating', '0 28px 56px rgba(30, 24, 18, 0.16)'),
+    shadowStrong: cssVar('--sdid-shadow-strong', '0 36px 66px rgba(30, 24, 18, 0.2)'),
+    shadowButton: cssVar('--sdid-shadow-button', '0 14px 26px rgba(30, 24, 18, 0.12)')
   };
   style.textContent = `
     .sdid-identity-filled {
@@ -1316,7 +1318,7 @@ window.addEventListener('message', handleLoginRequest);
       display: flex;
       align-items: flex-start;
       justify-content: flex-end;
-      padding: 24px;
+      padding: 72px 20px 24px;
       background: ${overlayTheme.overlayBackdrop};
       backdrop-filter: blur(8px);
       font-family: ${overlayTheme.fontFamily};
@@ -1334,14 +1336,15 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-login-dialog {
       background: ${overlayTheme.surface};
       color: ${overlayTheme.text};
-      width: min(360px, calc(100% - 32px));
-      border-radius: 20px;
+      width: min(320px, calc(100% - 32px));
+      border-radius: 24px;
       border: 1px solid ${overlayTheme.border};
       box-shadow: ${overlayTheme.shadowPanel};
-      padding: 22px;
+      padding: 20px 22px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
+      margin-top: 12px;
       pointer-events: auto;
       opacity: 0;
       transform: translate3d(12px, -12px, 0) scale(0.98);
@@ -1360,7 +1363,7 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
@@ -1370,10 +1373,10 @@ window.addEventListener('message', handleLoginRequest);
       gap: 12px;
     }
     .sdid-login-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 16px;
-      background: rgba(34, 31, 26, 0.08);
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(36, 28, 19, 0.08);
       color: ${overlayTheme.text};
       display: flex;
       align-items: center;
@@ -1395,15 +1398,15 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-header-text h2 {
       margin: 0;
-      font-size: 1.06rem;
+      font-size: 1.02rem;
       font-weight: 600;
       color: ${overlayTheme.text};
     }
     .sdid-login-subtitle {
       margin: 0;
-      font-size: 0.84rem;
-      color: ${overlayTheme.muted};
-      line-height: 1.4;
+      font-size: 0.82rem;
+      color: ${overlayTheme.subtle};
+      line-height: 1.45;
     }
     .sdid-language-switch {
       display: inline-flex;
@@ -1455,28 +1458,29 @@ window.addEventListener('message', handleLoginRequest);
       padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
     .sdid-login-detail-item {
       display: flex;
       gap: 12px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 16px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-radius: 18px;
       background: ${overlayTheme.control};
       border: 1px solid ${overlayTheme.border};
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
       transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease;
     }
     .sdid-login-detail-item:hover {
       transform: translateY(-1px);
       background: ${overlayTheme.controlStrong};
       border-color: ${overlayTheme.borderStrong};
-      box-shadow: 0 16px 28px rgba(28, 24, 19, 0.12);
+      box-shadow: 0 18px 30px rgba(28, 24, 19, 0.12);
     }
     .sdid-login-item-icon {
       width: 30px;
       height: 30px;
-      border-radius: 50px;
+      border-radius: 12px;
       background: ${overlayTheme.accentSoft};
       color: ${overlayTheme.text};
       display: flex;
@@ -1502,9 +1506,16 @@ window.addEventListener('message', handleLoginRequest);
       font-weight: 600;
     }
     .sdid-login-item-value {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       color: ${overlayTheme.text};
-      line-height: 1.45;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .sdid-login-item-subvalue {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.76rem;
+      color: ${overlayTheme.subtle};
       word-break: break-word;
     }
     .sdid-login-select {
@@ -1539,9 +1550,9 @@ window.addEventListener('message', handleLoginRequest);
       flex-wrap: wrap;
     }
     .sdid-login-actions button {
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid ${overlayTheme.border};
-      padding: 10px 20px;
+      padding: 10px 18px;
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
@@ -1555,6 +1566,9 @@ window.addEventListener('message', handleLoginRequest);
       color: ${overlayTheme.text};
       box-shadow: 0 12px 22px rgba(28, 24, 19, 0.08);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-inline: 18px;
     }
     .sdid-login-actions button:hover {
       transform: translateY(-1px);
@@ -1635,10 +1649,10 @@ window.addEventListener('message', handleLoginRequest);
     @media (max-width: 600px) {
       .sdid-login-overlay {
         justify-content: center;
-        padding: 16px;
+        padding: 48px 16px 16px;
       }
       .sdid-login-dialog {
-        width: min(360px, calc(100% - 24px));
+        width: min(320px, calc(100% - 24px));
       }
     }
 `

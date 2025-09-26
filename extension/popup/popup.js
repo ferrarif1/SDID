@@ -6,6 +6,7 @@ import {
   onLanguageChange,
   applyTranslations
 } from '../shared/i18n.js';
+import { registerTextFit, recalibrateTextFits } from '../shared/textFit.js';
 
 const IDENTITY_STORAGE_KEY = 'identities';
 
@@ -20,6 +21,22 @@ const languageButtons = languageToggle ? Array.from(languageToggle.querySelector
 const permissionBanner = document.getElementById('permission-banner');
 const permissionButton = document.getElementById('enable-site');
 const permissionOriginValue = document.getElementById('permission-origin-value');
+
+const staticFitTargets = [
+  { element: statusMessage, options: { maxLines: 2 } },
+  { element: manageButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: createFirstButton, options: { maxLines: 1 } },
+  { element: permissionButton, options: { maxLines: 1 } },
+  { element: permissionOriginValue, options: { maxLines: 1 } }
+];
+
+staticFitTargets.forEach(({ element, options }) => {
+  if (element) {
+    registerTextFit(element, options);
+  }
+});
+
+languageButtons.forEach((button) => registerTextFit(button, { maxLines: 1, preserveTitle: false }));
 
 let currentLanguage = getLanguage();
 
@@ -111,6 +128,7 @@ async function loadActiveContext() {
     }
     if (permissionOriginValue) {
       permissionOriginValue.textContent = currentOrigin || '';
+      recalibrateTextFits();
     }
   } catch (error) {
     console.error('Unable to determine active tab context', error);
@@ -124,6 +142,7 @@ async function updatePermissionState() {
 
   if (permissionOriginValue) {
     permissionOriginValue.textContent = currentOrigin || '';
+    recalibrateTextFits();
   }
 
   const canRequest = Boolean(activeTabId) && isHttpOrigin(currentOrigin);
@@ -133,6 +152,7 @@ async function updatePermissionState() {
 
   if (!canRequest) {
     permissionBanner.hidden = true;
+    recalibrateTextFits();
     return false;
   }
 
@@ -142,6 +162,7 @@ async function updatePermissionState() {
     if (permissionButton) {
       permissionButton.disabled = true;
     }
+    recalibrateTextFits();
     return false;
   }
 
@@ -156,6 +177,7 @@ async function updatePermissionState() {
         console.warn('Unable to refresh SDID bridge for origin', originPattern, error);
       }
     }
+    recalibrateTextFits();
     return hasPermission;
   } catch (error) {
     console.error('Unable to determine SDID permissions for origin', error);
@@ -163,6 +185,7 @@ async function updatePermissionState() {
     if (permissionButton) {
       permissionButton.disabled = true;
     }
+    recalibrateTextFits();
     return false;
   }
 }
@@ -272,6 +295,7 @@ function renderIdentities() {
   identityList.classList.add('list-enter');
   if (!filteredIdentities.length) {
     emptyState.hidden = false;
+    recalibrateTextFits();
     return;
   }
   emptyState.hidden = true;
@@ -288,21 +312,24 @@ function renderIdentities() {
     });
   requestAnimationFrame(() => {
     identityList.classList.remove('list-enter');
+    recalibrateTextFits();
   });
 }
 
 function createIdentityCard(identity) {
   const container = document.createElement('article');
-  
+
   const title = document.createElement('h2');
   title.textContent = identity.label || translate('common.untitledIdentity');
   container.appendChild(title);
+  registerTextFit(title, { maxLines: 2 });
 
   if (identity.domain) {
     const domain = document.createElement('p');
     domain.className = 'identity-domain';
     domain.textContent = `${translate('popup.meta.domain')} ${identity.domain}`;
     container.appendChild(domain);
+    registerTextFit(domain, { maxLines: 2 });
   }
 
   const meta = document.createElement('div');
@@ -312,6 +339,7 @@ function createIdentityCard(identity) {
     const rolesChip = document.createElement('span');
     rolesChip.textContent = `${translate('popup.meta.roles')} ${identity.roles.join(', ')}`;
     meta.appendChild(rolesChip);
+    registerTextFit(rolesChip, { maxLines: 1 });
   }
 
   if (identity.did) {
@@ -319,12 +347,14 @@ function createIdentityCard(identity) {
     didChip.className = 'mono';
     didChip.textContent = `${translate('popup.meta.did')} ${identity.did}`;
     meta.appendChild(didChip);
+    registerTextFit(didChip, { maxLines: 1 });
   }
 
   if (identity.tags?.length) {
     const tagsChip = document.createElement('span');
     tagsChip.textContent = `${translate('popup.meta.tags')} ${identity.tags.join(', ')}`;
     meta.appendChild(tagsChip);
+    registerTextFit(tagsChip, { maxLines: 1 });
   }
 
   if (meta.childElementCount) {
@@ -336,6 +366,7 @@ function createIdentityCard(identity) {
     notes.className = 'identity-notes';
     notes.textContent = identity.notes;
     container.appendChild(notes);
+    registerTextFit(notes, { maxLines: 3 });
   }
 
   if (currentOrigin) {
@@ -347,6 +378,7 @@ function createIdentityCard(identity) {
       : translate('popup.status.unauthorized');
     status.dataset.state = authorized ? 'authorized' : 'unauthorized';
     container.appendChild(status);
+    registerTextFit(status, { maxLines: 1 });
   }
 
   const actions = document.createElement('div');
@@ -357,12 +389,14 @@ function createIdentityCard(identity) {
   copyDidButton.textContent = translate('popup.actions.copyDid');
   copyDidButton.addEventListener('click', (e) => { ripple(e); copyDid(identity); });
   actions.appendChild(copyDidButton);
+  registerTextFit(copyDidButton, { maxLines: 1, preserveTitle: false });
 
   const copyKeyButton = document.createElement('button');
   copyKeyButton.className = 'secondary';
   copyKeyButton.textContent = translate('popup.actions.copyPublicKey');
   copyKeyButton.addEventListener('click', (e) => { ripple(e); copyPublicKey(identity); });
   actions.appendChild(copyKeyButton);
+  registerTextFit(copyKeyButton, { maxLines: 1, preserveTitle: false });
 
   if (identity.username || identity.password) {
     const fillButton = document.createElement('button');
@@ -370,6 +404,7 @@ function createIdentityCard(identity) {
     fillButton.textContent = translate('popup.actions.autofill');
     fillButton.addEventListener('click', (e) => { ripple(e); fillIdentity(identity); });
     actions.appendChild(fillButton);
+    registerTextFit(fillButton, { maxLines: 1, preserveTitle: false });
   }
 
   if (currentOrigin && isAuthorizedForOrigin(identity, currentOrigin)) {
@@ -378,6 +413,7 @@ function createIdentityCard(identity) {
     revokeButton.textContent = translate('popup.actions.revokeSite');
     revokeButton.addEventListener('click', (e) => { ripple(e); revokeCurrentOrigin(identity); });
     actions.appendChild(revokeButton);
+    registerTextFit(revokeButton, { maxLines: 1, preserveTitle: false });
   }
 
   container.appendChild(actions);
@@ -476,6 +512,7 @@ async function copyPublicKey(identity) {
 function setStatus(message, isError = false) {
   statusMessage.textContent = message || '';
   statusMessage.dataset.state = isError ? 'error' : 'info';
+  recalibrateTextFits();
 }
 
 if (permissionButton) {
@@ -547,6 +584,7 @@ onLanguageChange((lang) => {
   applyTranslations(document);
   updateLanguageToggleUI(lang);
   applyFilter(searchInput.value.trim());
+  recalibrateTextFits();
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -562,6 +600,7 @@ async function init() {
   currentLanguage = getLanguage();
   applyTranslations(document);
   updateLanguageToggleUI(currentLanguage);
+  recalibrateTextFits();
   await loadActiveContext();
   await updatePermissionState();
   await loadIdentities();

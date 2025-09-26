@@ -64,9 +64,7 @@ const translations = {
           roles: 'Roles:',
           did: 'DID:',
           username: 'Username:',
-          domain: 'Trusted domain:',
-          verificationMethod: 'Verification method:',
-          keyType: 'Key type:'
+          domain: 'Trusted domain:'
         },
         authorizedSites: 'Authorized sites',
         lastUsed: 'Last used:',
@@ -182,27 +180,17 @@ const translations = {
       },
       overlay: {
         title: 'SDID login request',
-        subtitle: 'Review and approve this sign-in request.',
-        origin: 'Origin',
+        origin: 'Origin:',
         chooseIdentity: 'Choose identity',
         remember: 'Remember this site for one-click approvals',
         rememberAuthorized: 'This site is already authorized. Uncheck to require approval next time.',
         rememberHint: 'Keep this checked to approve future logins instantly.',
-        sectionRequest: 'Request details',
-        sectionIdentity: 'Identity preview',
-        summarySite: 'Site',
-        summaryTime: 'Requested at',
-        summaryRequestId: 'Request ID',
-        summaryChallenge: 'Challenge nonce',
-        summaryIdentity: 'Identity',
-        summaryDid: 'DID',
-        summaryVerification: 'Verification method',
-        summaryKeyType: 'Key type',
-        summaryRoles: 'Roles',
-        summaryDomain: 'Trusted domain',
-        summaryUsername: 'Username',
-        summaryNotes: 'Notes',
-        summaryTags: 'Tags'
+        summaryIdentity: 'Identity:',
+        summaryDid: 'DID:',
+        summaryRoles: 'Roles:',
+        summaryDomain: 'Trusted domain:',
+        summaryUsername: 'Username:',
+        summaryNotes: 'Notes:'
       }
     }
   },
@@ -267,9 +255,7 @@ const translations = {
           roles: '角色：',
           did: 'DID：',
           username: '用户名：',
-          domain: '信任域名：',
-          verificationMethod: '验证方法：',
-          keyType: '密钥类型：'
+          domain: '信任域名：'
         },
         authorizedSites: '已授权站点',
         lastUsed: '最近使用：',
@@ -385,27 +371,17 @@ const translations = {
       },
       overlay: {
         title: 'SDID 登录请求',
-        subtitle: '请确认并签署本次登录请求。',
-        origin: '请求站点',
+        origin: '请求来源：',
         chooseIdentity: '选择登录身份',
         remember: '记住此站点，下次一键授权',
         rememberAuthorized: '当前站点已授权，取消勾选则下次重新确认。',
         rememberHint: '保持勾选以便下次自动快速授权。',
-        sectionRequest: '请求信息',
-        sectionIdentity: '身份预览',
-        summarySite: '站点',
-        summaryTime: '请求时间',
-        summaryRequestId: '请求 ID',
-        summaryChallenge: '随机挑战值',
-        summaryIdentity: '身份',
-        summaryDid: 'DID',
-        summaryVerification: '验证方法',
-        summaryKeyType: '密钥类型',
-        summaryRoles: '角色',
-        summaryDomain: '信任域名',
-        summaryUsername: '用户名',
-        summaryNotes: '备注',
-        summaryTags: '标签'
+        summaryIdentity: '身份：',
+        summaryDid: 'DID：',
+        summaryRoles: '角色：',
+        summaryDomain: '信任域名：',
+        summaryUsername: '用户名：',
+        summaryNotes: '备注：'
       }
     }
   }

@@ -50,8 +50,7 @@ const translations = {
       missing: 'Missing public key or signature.',
       success: 'Signature verified successfully.',
       failure: 'Signature verification failed.',
-      error: 'Unable to verify the signature. Check the console for details.',
-      mismatch: 'Authentication payload mismatch.'
+      error: 'Unable to verify the signature. Check the console for details.'
     },
     login: {
       message: 'Demo dApp requests access'
@@ -99,8 +98,7 @@ const translations = {
       missing: '缺少公钥或签名。',
       success: '签名验证通过。',
       failure: '签名验证失败。',
-      error: '无法验证签名，请查看控制台日志。',
-      mismatch: '认证负载不一致。'
+      error: '无法验证签名，请查看控制台日志。'
     },
     login: {
       message: '演示应用请求访问'
@@ -143,22 +141,6 @@ function formatTemplate(template, replacements = {}) {
   return template.replace(/\{(\w+)\}/g, (match, token) => {
     return token in replacements ? String(replacements[token]) : match;
   });
-}
-
-function canonicalizeJson(value) {
-  if (value === null || value === undefined) {
-    return 'null';
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalizeJson(item)).join(',')}]`;
-  }
-  if (typeof value === 'object') {
-    const keys = Object.keys(value)
-      .filter((key) => value[key] !== undefined)
-      .sort();
-    return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalizeJson(value[key])}`).join(',')}}`;
-  }
-  return JSON.stringify(value);
 }
 
 function translate(key, replacements = {}, language = currentLanguage) {
@@ -276,12 +258,9 @@ function formatIdentityPayload(response) {
     challenge: response.challenge,
     signature: response.signature,
     algorithm: response.algorithm,
-    proof: response.proof,
-    authentication: response.authentication,
     authorized: response.authorized,
     remembered: response.remembered,
-    fill: response.fill,
-    requestId: response.requestId
+    fill: response.fill
   };
   return JSON.stringify(payload, null, 2);
 }
@@ -326,53 +305,25 @@ function createChallenge() {
   return `demo:${Date.now().toString(16)}:${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
 }
 
-async function verifySignatureWithKey(publicKeyJwk, data, signature) {
-  const publicKey = await crypto.subtle.importKey(
-    'jwk',
-    publicKeyJwk,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    false,
-    ['verify']
-  );
-  const binary = atob(signature);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  const dataBytes = new TextEncoder().encode(data);
-  return crypto.subtle.verify({ name: 'ECDSA', hash: { name: 'SHA-256' } }, publicKey, bytes, dataBytes);
-}
-
-async function verifyAuthenticationResponse(response) {
-  const identity = response?.identity;
-  if (!identity?.publicKeyJwk) {
+async function verifySignature(identity, challenge, signature) {
+  if (!identity?.publicKeyJwk || !signature || !challenge) {
     return { verified: false, key: 'verification.missing' };
   }
-
-  const signature = response?.proof?.signatureValue || response?.signature;
-  const canonicalRequest = typeof response?.authentication?.canonicalRequest === 'string'
-    ? response.authentication.canonicalRequest
-    : null;
-  const payload = response?.authentication?.payload || null;
-
-  let dataToVerify = canonicalRequest;
-  if (payload && canonicalRequest) {
-    const reconstructed = canonicalizeJson(payload);
-    if (reconstructed !== canonicalRequest) {
-      return { verified: false, key: 'verification.mismatch' };
-    }
-  }
-
-  if (!dataToVerify) {
-    dataToVerify = response?.challenge || null;
-  }
-
-  if (!signature || !dataToVerify) {
-    return { verified: false, key: 'verification.missing' };
-  }
-
   try {
-    const verified = await verifySignatureWithKey(identity.publicKeyJwk, dataToVerify, signature);
+    const publicKey = await crypto.subtle.importKey(
+      'jwk',
+      identity.publicKeyJwk,
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false,
+      ['verify']
+    );
+    const binary = atob(signature);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const data = new TextEncoder().encode(challenge);
+    const verified = await crypto.subtle.verify({ name: 'ECDSA', hash: { name: 'SHA-256' } }, publicKey, bytes, data);
     return { verified, key: verified ? 'verification.success' : 'verification.failure' };
   } catch (error) {
     console.error('Signature verification error', error);
@@ -414,7 +365,7 @@ function changeLanguage(language) {
   applyVerification();
 }
 
-async function requestLogin(forcePrompt = true) {
+async function requestLogin(forcePrompt = false) {
   disableButtons(true);
   setVerification(null);
   renderIdentity(null);
@@ -428,7 +379,7 @@ async function requestLogin(forcePrompt = true) {
       forcePrompt
     });
     renderIdentity(response);
-    const verification = await verifyAuthenticationResponse(response);
+    const verification = await verifySignature(response.identity, response.challenge, response.signature);
     setVerification(verification);
     const label = (response.identity?.label && response.identity.label.trim())
       || response.identity?.did
@@ -471,7 +422,7 @@ if (languageButtons.length) {
 }
 
 if (connectButton) {
-  connectButton.addEventListener('click', () => requestLogin());
+  connectButton.addEventListener('click', () => requestLogin(false));
 }
 
 if (forceButton) {

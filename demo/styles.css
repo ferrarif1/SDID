@@ -1,14 +1,14 @@
 :root {
   font-family: 'Inter', 'SF Pro Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #111827;
-  background-color: #f5f5f7;
+  color: #1f1b16;
+  background-color: #f4eee4;
   color-scheme: light;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f5f5f7;
+  background: linear-gradient(180deg, #f4eee4 0%, #f9f6f0 100%);
   color: inherit;
   display: flex;
   flex-direction: column;
@@ -35,13 +35,13 @@ body {
   margin: 0;
   font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 600;
-  color: #0f172a;
+  color: #1f1b16;
 }
 
 .hero p {
   margin: 0;
   max-width: 720px;
-  color: #4b5563;
+  color: #5e5a54;
   line-height: 1.6;
 }
 
@@ -49,16 +49,16 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(129, 119, 105, 0.32);
   border-radius: 999px;
   padding: 4px;
-  background: #ffffff;
+  background: #f8f3ea;
 }
 
 .language-switch button {
   border: none;
   background: transparent;
-  color: #374151;
+  color: #7b756d;
   padding: 6px 14px;
   border-radius: 999px;
   font-size: 0.85rem;
@@ -68,13 +68,13 @@ body {
 
 .language-switch button:hover,
 .language-switch button:focus-visible {
-  background: #e5edff;
+  background: rgba(129, 119, 105, 0.16);
   outline: none;
 }
 
 .language-switch button.active {
-  background: #2563eb;
-  color: #ffffff;
+  background: #1f1b16;
+  color: #f8f3ea;
 }
 
 .layout {
@@ -89,8 +89,8 @@ body {
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #f8f3ea;
+  border: 1px solid rgba(129, 119, 105, 0.28);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -101,7 +101,7 @@ body {
 .card h2 {
   margin: 0;
   font-size: 1.2rem;
-  color: #0f172a;
+  color: #1f1b16;
 }
 
 .steps {
@@ -110,7 +110,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  color: #4b5563;
+  color: #5e5a54;
   line-height: 1.6;
 }
 
@@ -123,45 +123,45 @@ body {
 button {
   font: inherit;
   border-radius: 999px;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(129, 119, 105, 0.32);
   padding: 10px 18px;
-  background: #ffffff;
-  color: #111827;
+  background: #f8f3ea;
+  color: #1f1b16;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 button:hover {
-  background: #eef2ff;
+  background: rgba(239, 229, 215, 0.9);
 }
 
 button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 2px rgba(31, 27, 21, 0.18);
 }
 
 button.primary {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
+  background: #1f1b16;
+  border-color: rgba(31, 27, 21, 0.6);
+  color: #f8f3ea;
   font-weight: 600;
 }
 
 button.primary:hover,
 button.primary:focus-visible {
-  background: #1d4ed8;
-  color: #ffffff;
+  background: #15110d;
+  color: #f8f3ea;
 }
 
 button.secondary {
-  border-color: #d1d5db;
-  color: #1f2937;
+  border-color: rgba(129, 119, 105, 0.32);
+  color: #5e5a54;
 }
 
 button.secondary:hover,
 button.secondary:focus-visible {
-  border-color: #2563eb;
-  color: #2563eb;
+  border-color: rgba(31, 27, 21, 0.6);
+  color: #1f1b16;
 }
 
 button:disabled {
@@ -172,7 +172,7 @@ button:disabled {
 
 .hint {
   margin: 0;
-  color: #6b7280;
+  color: #7b756d;
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -180,26 +180,26 @@ button:disabled {
 .status {
   min-height: 24px;
   font-weight: 500;
-  color: #4b5563;
+  color: #5e5a54;
   transition: color 0.2s ease;
 }
 
 .status[data-state='success'] {
-  color: #15803d;
+  color: #2f6d46;
 }
 
 .status[data-state='error'] {
-  color: #dc2626;
+  color: #b9483c;
 }
 
 .status[data-state='info'] {
-  color: #4b5563;
+  color: #5e5a54;
 }
 
 pre {
   margin: 0;
   background: #f8fafc;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(129, 119, 105, 0.28);
   border-radius: 12px;
   padding: 16px;
   font-size: 0.85rem;
@@ -212,25 +212,25 @@ pre {
   flex-direction: column;
   gap: 8px;
   font-size: 0.95rem;
-  color: #4b5563;
+  color: #5e5a54;
 }
 
 .verification .success {
-  color: #15803d;
+  color: #2f6d46;
 }
 
 .verification .error {
-  color: #dc2626;
+  color: #b9483c;
 }
 
 .footer {
   margin-top: auto;
   padding: 24px;
   text-align: center;
-  color: #6b7280;
+  color: #7b756d;
   font-size: 0.85rem;
   border-top: 1px solid #e5e7eb;
-  background: #ffffff;
+  background: #f8f3ea;
 }
 
 @media (max-width: 720px) {

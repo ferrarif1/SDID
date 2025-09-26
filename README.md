@@ -25,18 +25,9 @@ SDID is a Chrome extension that helps teams manage decentralized identities for 
 - **Demo dApp｜演示应用** – the `/demo` folder hosts a ready-to-run site that requests SDID login and verifies the returned signature. / `/demo` 目录提供可直接运行的站点，用于发起 SDID 登录并验证返回的签名。
 
 
-- DID key management & signing – generate P-256 key pairs per identity, expose the DID, and sign login challenges for dapps.
-- Per-site authorization control – remember approved origins for one-click logins, or revoke them later from the options page.
-- Role-aware metadata – capture roles, domains, tags, and notes to describe responsibilities or access boundaries.
-- Secure storage & backup – all identity data (including keys) lives in encrypted Chrome sync storage with JSON import/export support.
-- Autofill fallback – keep optional usernames/passwords for legacy systems and inject them into the current tab in one click.
-- Verifiable DID auth proofs – login responses ship with a canonicalized payload and W3C-style proof so relying parties can audit who signed what.
-- Language toggle – switch between English and Chinese across the popup, options page, and approval overlays with a single tap.
-- Minimal interface – refreshed visual styling inspired by Google/Apple design language: light surfaces, clean lines, and focused typography.
-- Demo dApp – the `/demo` folder hosts a ready-to-run site that requests SDID login and verifies the returned signature.
-
-
 Web apps can call SDID from the page context and receive a streamlined confirmation dialog that mirrors popular wallet-to-dapp experiences. The sheet lets the user pick an identity, review roles and DID details, and optionally remember the requesting origin. Once confirmed, SDID produces a canonical authentication payload, signs it with the identity’s private key, attaches a W3C-style proof object, and (when possible) fills matching username/password fields automatically.
+
+网页应用可以直接在页面上下文中调用 SDID，并获得与常见钱包连接类似的快速确认体验。弹窗会展示身份名称、角色与 DID 详情，用户可选择记住当前站点。确认后，SDID 会生成经过规范化的认证负载，用该身份的私钥签名并附上符合 W3C 规范的证明对象，同时在检测到用户名或密码输入框时自动填充。
 
 网页应用可以直接在页面上下文中调用 SDID，并获得与常见钱包连接类似的快速确认体验。弹窗会展示身份名称、角色与 DID 详情，用户可选择记住当前站点。确认后，SDID 会生成经过规范化的认证负载，用该身份的私钥签名并附上符合 W3C 规范的证明对象，同时在检测到用户名或密码输入框时自动填充。
 

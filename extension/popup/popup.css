@@ -1,37 +1,19 @@
+@import url('../shared/theme.css');
+
 * {
   box-sizing: border-box;
 }
 
-:root {
-  font-family: 'SF Pro Text', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  color-scheme: light;
-  --color-text: #1f2430;
-  --color-muted: #5f6b7c;
-  --color-subtle: #8c97a8;
-  --color-border: rgba(206, 214, 228, 0.9);
-  --color-border-strong: rgba(180, 191, 210, 0.9);
-  --color-surface: rgba(255, 255, 255, 0.78);
-  --color-surface-strong: rgba(255, 255, 255, 0.86);
-  --color-accent: #1c64f2;
-  --color-accent-soft: rgba(28, 100, 242, 0.1);
-  --color-success: #1f8c4c;
-  --color-danger: #c9343a;
-  --color-info: #2f80ff;
-  --shadow-panel: 0 22px 46px rgba(21, 33, 61, 0.16);
-  --shadow-floating: 0 16px 32px rgba(19, 33, 58, 0.18);
-  --transition-base: 160ms ease;
-}
-
 body {
   margin: 0;
-  width: 360px;
-  min-height: 440px;
+  width: min(360px, 100vw);
+  min-height: 420px;
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  color: var(--color-text);
-  background: radial-gradient(120% 120% at 0% 0%, #ffd390 0%, rgba(255, 142, 110, 0.92) 42%, rgba(255, 123, 164, 0.9) 100%);
+  color: var(--sdid-color-text);
+  background: var(--sdid-surface-gradient);
   position: relative;
   overflow: hidden;
 }
@@ -39,19 +21,7 @@ body {
 body::before,
 body::after {
   content: '';
-  position: absolute;
-  inset: -25% -25% 45% -25%;
-  background: radial-gradient(70% 65% at 22% 18%, rgba(255, 255, 255, 0.45), transparent 70%),
-    radial-gradient(60% 55% at 88% 15%, rgba(255, 255, 255, 0.35), transparent 75%);
-  pointer-events: none;
-  mix-blend-mode: screen;
-  z-index: 0;
-}
-
-body::after {
-  inset: 55% -30% -25% 0%;
-  background: radial-gradient(80% 70% at 78% 30%, rgba(255, 255, 255, 0.4), transparent 75%),
-    radial-gradient(45% 45% at 18% 75%, rgba(255, 255, 255, 0.22), transparent 78%);
+  display: none;
 }
 
 body > * {
@@ -62,11 +32,10 @@ body > * {
 .app-header,
 main,
 .app-footer {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 22px;
-  backdrop-filter: saturate(160%) blur(26px);
-  box-shadow: var(--shadow-panel);
+  background: var(--sdid-color-surface-strong);
+  border: 1px solid var(--sdid-color-border);
+  border-radius: var(--sdid-radius-card);
+  box-shadow: var(--sdid-shadow-panel);
 }
 
 .app-header {
@@ -83,8 +52,8 @@ main,
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.12) 100%);
-  opacity: 0.65;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(236, 232, 225, 0.42) 100%);
+  opacity: 0.6;
   pointer-events: none;
 }
 
@@ -100,17 +69,16 @@ main,
 .title-group h1 {
   margin: 0;
   font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 620;
+  letter-spacing: 0.02em;
 }
 
 .app-subtitle {
   margin: 0;
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-subtle);
+  color: var(--sdid-color-subtle);
 }
 
 .header-actions {
@@ -123,66 +91,74 @@ main,
 
 .language-buttons {
   display: inline-flex;
-  background: rgba(255, 255, 255, 0.55);
-  border-radius: 12px;
-  border: 1px solid rgba(206, 214, 228, 0.7);
-  padding: 3px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 10px rgba(33, 49, 82, 0.12);
+  background: rgba(244, 242, 238, 0.95);
+  border-radius: var(--sdid-radius-control);
+  border: 1px solid var(--sdid-color-border);
+  padding: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 8px 20px rgba(32, 28, 22, 0.08);
 }
 
 .language-buttons button {
   border: none;
   background: transparent;
-  color: var(--color-muted);
+  color: var(--sdid-color-subtle);
   font-size: 0.72rem;
   font-weight: 600;
   padding: 4px 12px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: background-color var(--transition-base), color var(--transition-base), box-shadow var(--transition-base);
+  transition: background-color var(--sdid-transition-base), color var(--sdid-transition-base), box-shadow var(--sdid-transition-base);
 }
 
 .language-buttons button:hover,
 .language-buttons button:focus-visible {
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--color-text);
+  background: rgba(212, 206, 197, 0.5);
+  color: var(--sdid-color-text);
   outline: none;
 }
 
 .language-buttons button.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e1e9ff 100%);
-  color: var(--color-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 18px rgba(47, 128, 237, 0.22);
+  background: var(--sdid-color-accent);
+  color: var(--sdid-color-control);
+  box-shadow: 0 12px 22px rgba(32, 28, 22, 0.24);
 }
 
 button {
   font: inherit;
-  border-radius: 14px;
-  border: 1px solid rgba(198, 205, 219, 0.8);
-  padding: 9px 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(235, 240, 252, 0.8) 100%);
-  color: var(--color-text);
+  border-radius: var(--sdid-radius-control);
+  border: 1px solid var(--sdid-color-border);
+  padding: 9px 18px;
+  background: var(--sdid-color-control);
+  color: var(--sdid-color-text);
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base),
-    background-color var(--transition-base), color var(--transition-base);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 10px 18px rgba(21, 33, 61, 0.12);
-  backdrop-filter: saturate(160%);
+  transition: transform var(--sdid-transition-base), box-shadow var(--sdid-transition-base), border-color var(--sdid-transition-base),
+    background-color var(--sdid-transition-base), color var(--sdid-transition-base);
+  box-shadow: var(--sdid-shadow-button);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  line-height: 1.2;
 }
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 16px 26px rgba(21, 33, 61, 0.18);
+  background: var(--sdid-color-control-strong);
+  border-color: var(--sdid-color-border-strong);
+  box-shadow: 0 16px 28px rgba(28, 24, 19, 0.12);
 }
 
 button:active {
   transform: translateY(0);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 18px rgba(21, 33, 61, 0.12);
+  background: var(--sdid-color-control-active);
+  box-shadow: 0 8px 16px rgba(28, 24, 19, 0.12);
 }
 
 button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(28, 100, 242, 0.35), 0 8px 18px rgba(21, 33, 61, 0.18);
+  box-shadow: 0 0 0 3px rgba(34, 31, 26, 0.16), 0 12px 22px rgba(28, 24, 19, 0.12);
 }
 
 button:disabled {
@@ -193,41 +169,42 @@ button:disabled {
 }
 
 button.primary {
-  background: linear-gradient(180deg, #5094ff 0%, #2366ff 100%);
-  color: #ffffff;
-  border-color: rgba(46, 110, 255, 0.7);
-  box-shadow: 0 16px 26px rgba(35, 102, 255, 0.28);
+  background: var(--sdid-color-accent);
+  color: var(--sdid-color-control);
+  border-color: rgba(28, 24, 19, 0.82);
+  box-shadow: 0 18px 32px rgba(28, 24, 19, 0.22);
 }
 
 button.primary:hover,
 button.primary:focus-visible {
-  background: linear-gradient(180deg, #5a9cff 0%, #1c64f2 100%);
+  background: var(--sdid-color-accent-strong);
 }
 
 button.secondary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(232, 239, 252, 0.78) 100%);
-  color: var(--color-accent);
-  border-color: rgba(138, 161, 209, 0.7);
+  background: var(--sdid-color-control);
+  color: var(--sdid-color-muted);
+  border-color: var(--sdid-color-border);
 }
 
 button.danger {
-  background: linear-gradient(180deg, rgba(255, 234, 234, 0.95) 0%, rgba(253, 211, 211, 0.9) 100%);
-  color: var(--color-danger);
-  border-color: rgba(228, 134, 140, 0.65);
+  background: var(--sdid-color-danger-soft);
+  color: var(--sdid-color-danger);
+  border-color: rgba(196, 112, 97, 0.4);
+  box-shadow: 0 14px 24px rgba(156, 70, 56, 0.16);
 }
 
 button.ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
   box-shadow: none;
   padding: 6px 10px;
 }
 
 button.ghost:hover,
 button.ghost:focus-visible {
-  background: rgba(255, 255, 255, 0.65);
-  color: var(--color-text);
+  background: rgba(228, 224, 217, 0.5);
+  color: var(--sdid-color-text);
   box-shadow: none;
 }
 
@@ -245,17 +222,17 @@ main::-webkit-scrollbar {
 }
 
 main::-webkit-scrollbar-thumb {
-  background: rgba(170, 186, 212, 0.6);
+  background: var(--sdid-color-border-strong);
   border-radius: 999px;
 }
 
 .permission-banner {
   display: flex;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(231, 240, 255, 0.8) 100%);
-  border: 1px solid rgba(198, 207, 226, 0.9);
+  background: var(--sdid-color-surface);
+  border: 1px solid var(--sdid-color-border);
   border-radius: 18px;
   padding: 16px;
-  box-shadow: 0 14px 28px rgba(21, 33, 61, 0.12);
+  box-shadow: var(--sdid-shadow-panel);
   animation: fadeInUp 0.28s ease both;
 }
 
@@ -263,13 +240,13 @@ main::-webkit-scrollbar-thumb {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
 }
 
 .permission-banner h2 {
   margin: 0;
   font-size: 0.98rem;
-  color: var(--color-text);
+  color: var(--sdid-color-text);
 }
 
 .permission-banner p {
@@ -288,11 +265,11 @@ main::-webkit-scrollbar-thumb {
 .permission-origin code {
   padding: 2px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(198, 207, 226, 0.8);
+  background: var(--sdid-color-accent-soft);
+  border: 1px solid var(--sdid-color-border);
   font-family: 'SFMono-Regular', 'JetBrains Mono', ui-monospace, 'Fira Code', monospace;
   font-size: 0.72rem;
-  color: var(--color-info);
+  color: var(--sdid-color-info);
   overflow-wrap: anywhere;
 }
 
@@ -305,30 +282,30 @@ main::-webkit-scrollbar-thumb {
 .search-label {
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
 }
 
 .search input {
   width: 100%;
   padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(198, 205, 219, 0.9);
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--color-text);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-radius: var(--sdid-radius-control);
+  border: 1px solid var(--sdid-color-border);
+  background: var(--sdid-color-surface);
+  color: var(--sdid-color-text);
+  transition: border-color var(--sdid-transition-base), box-shadow var(--sdid-transition-base);
+  box-shadow: none;
 }
 
 .search input::placeholder {
-  color: var(--color-subtle);
+  color: var(--sdid-color-subtle);
 }
 
 .search input:focus-visible {
   outline: none;
-  border-color: rgba(28, 100, 242, 0.55);
-  box-shadow: 0 0 0 3px rgba(28, 100, 242, 0.22);
+  border-color: rgba(32, 28, 22, 0.6);
+  box-shadow: 0 0 0 3px rgba(32, 28, 22, 0.12);
 }
 
 .identity-list {
@@ -341,22 +318,22 @@ main::-webkit-scrollbar-thumb {
 }
 
 .identity-card {
-  border: 1px solid var(--color-border-strong);
-  border-radius: 20px;
+  border: 1px solid var(--sdid-color-border);
+  border-radius: var(--sdid-radius-card);
   padding: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 245, 255, 0.82) 100%);
+  background: var(--sdid-color-surface);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: var(--shadow-floating);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  box-shadow: var(--sdid-shadow-floating);
+  transition: transform var(--sdid-transition-base), box-shadow var(--sdid-transition-base), border-color var(--sdid-transition-base);
   animation: fadeInUp 0.3s ease both;
 }
 
 .identity-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(28, 100, 242, 0.35);
-  box-shadow: 0 20px 38px rgba(19, 33, 58, 0.22);
+  border-color: rgba(32, 28, 22, 0.45);
+  box-shadow: 0 24px 38px rgba(28, 24, 19, 0.16);
 }
 
 .identity-card h2 {
@@ -367,7 +344,7 @@ main::-webkit-scrollbar-thumb {
 .identity-domain {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
   overflow-wrap: anywhere;
 }
 
@@ -376,7 +353,7 @@ main::-webkit-scrollbar-thumb {
   flex-direction: column;
   gap: 6px;
   font-size: 0.76rem;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
 }
 
 .identity-meta span {
@@ -385,21 +362,21 @@ main::-webkit-scrollbar-thumb {
   gap: 6px;
   padding: 6px 8px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(206, 214, 228, 0.8);
+  background: var(--sdid-color-accent-soft);
+  border: 1px solid var(--sdid-color-border);
   overflow-wrap: anywhere;
 }
 
 .identity-meta .mono {
   font-family: 'SFMono-Regular', 'JetBrains Mono', ui-monospace, 'Fira Code', monospace;
-  color: var(--color-info);
+  color: var(--sdid-color-info);
 }
 
 .identity-notes {
   margin: 0;
   font-size: 0.78rem;
   line-height: 1.5;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
   overflow-wrap: anywhere;
 }
 
@@ -408,20 +385,20 @@ main::-webkit-scrollbar-thumb {
   border-radius: 999px;
   padding: 4px 10px;
   width: fit-content;
-  background: rgba(28, 100, 242, 0.12);
-  color: var(--color-accent);
+  background: var(--sdid-color-accent-soft);
+  color: var(--sdid-color-accent);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .identity-status[data-state='authorized'] {
-  background: rgba(31, 140, 76, 0.14);
-  color: var(--color-success);
+  background: rgba(47, 109, 70, 0.12);
+  color: var(--sdid-color-success);
 }
 
 .identity-status[data-state='unauthorized'] {
-  background: rgba(184, 191, 205, 0.25);
-  color: var(--color-muted);
+  background: rgba(200, 194, 185, 0.25);
+  color: var(--sdid-color-muted);
 }
 
 .card-actions {
@@ -437,10 +414,10 @@ main::-webkit-scrollbar-thumb {
   text-align: center;
   align-items: center;
   padding: 26px 16px;
-  border: 1px dashed rgba(198, 205, 219, 0.75);
+  border: 1px dashed rgba(206, 200, 190, 0.8);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.74);
-  color: var(--color-muted);
+  background: rgba(242, 238, 232, 0.6);
+  color: var(--sdid-color-muted);
   animation: fadeInUp 0.28s ease both;
 }
 
@@ -451,26 +428,26 @@ main::-webkit-scrollbar-thumb {
 .app-footer {
   padding: 14px 18px 18px;
   font-size: 0.75rem;
-  color: var(--color-muted);
+  color: var(--sdid-color-muted);
 }
 
 #status-message {
   display: block;
   min-height: 1em;
-  color: var(--color-muted);
-  transition: color var(--transition-base);
+  color: var(--sdid-color-muted);
+  transition: color var(--sdid-transition-base);
 }
 
 #status-message[data-state='error'] {
-  color: var(--color-danger);
+  color: var(--sdid-color-danger);
 }
 
 #status-message[data-state='success'] {
-  color: var(--color-success);
+  color: var(--sdid-color-success);
 }
 
 #status-message[data-state='info'] {
-  color: var(--color-accent);
+  color: var(--sdid-color-accent);
 }
 
 @keyframes fadeInUp {
@@ -497,6 +474,6 @@ main::-webkit-scrollbar-thumb {
   button:hover,
   .identity-card:hover {
     transform: none;
-    box-shadow: var(--shadow-floating);
+    box-shadow: var(--sdid-shadow-floating);
   }
 }

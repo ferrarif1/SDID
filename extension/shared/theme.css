@@ -1,0 +1,49 @@
+:root {
+  color-scheme: light;
+  --sdid-font-family: 'Inter', 'SF Pro Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --sdid-color-text: #221f1a;
+  --sdid-color-muted: #5b564d;
+  --sdid-color-subtle: #888379;
+  --sdid-color-border: #e4e0d8;
+  --sdid-color-border-strong: #d3cec4;
+  --sdid-color-surface: #ffffff;
+  --sdid-color-surface-strong: #ffffff;
+  --sdid-color-control: #f7f6f2;
+  --sdid-color-control-strong: #f2f0eb;
+  --sdid-color-control-active: #ece9e3;
+  --sdid-color-accent: #221f1a;
+  --sdid-color-accent-strong: #181612;
+  --sdid-color-accent-soft: #f2eee8;
+  --sdid-color-info: #6b665d;
+  --sdid-color-success: #2f6d46;
+  --sdid-color-danger: #c4554a;
+  --sdid-color-danger-soft: #f9efed;
+  --sdid-surface-gradient: linear-gradient(180deg, #f8f8f5 0%, #f4f2ef 100%);
+  --sdid-shadow-card: 0 20px 44px rgba(28, 24, 19, 0.08);
+  --sdid-shadow-panel: 0 24px 52px rgba(28, 24, 19, 0.12);
+  --sdid-shadow-floating: 0 20px 40px rgba(28, 24, 19, 0.12);
+  --sdid-shadow-strong: 0 24px 42px rgba(28, 24, 19, 0.18);
+  --sdid-shadow-button: 0 12px 22px rgba(28, 24, 19, 0.08);
+  --sdid-overlay-backdrop: rgba(34, 31, 26, 0.34);
+  --sdid-overlay-highlight: rgba(255, 255, 255, 0.45);
+  --sdid-shadow-input-focus: 0 0 0 3px rgba(32, 28, 22, 0.12);
+  --sdid-radius-card: 20px;
+  --sdid-radius-pill: 999px;
+  --sdid-radius-control: 12px;
+  --sdid-transition-base: 180ms ease;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sdid-font-family);
+  color: var(--sdid-color-text);
+  background: var(--sdid-surface-gradient);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}

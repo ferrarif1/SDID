@@ -66,6 +66,31 @@ function safeParseJson(value) {
   }
 }
 
+function getVerificationMethodId(identity) {
+  if (!identity?.did) {
+    return '';
+  }
+  return `${identity.did}#keys-1`;
+}
+
+function formatKeyType(publicKeyJwk) {
+  if (!publicKeyJwk || typeof publicKeyJwk !== 'object') {
+    return '';
+  }
+  const parts = [];
+  if (publicKeyJwk.crv) {
+    parts.push(publicKeyJwk.crv);
+  }
+  if (publicKeyJwk.kty) {
+    parts.push(publicKeyJwk.kty);
+  }
+  const base = parts.join(' / ');
+  if (publicKeyJwk.alg) {
+    return base ? `${base} (${publicKeyJwk.alg})` : publicKeyJwk.alg;
+  }
+  return base;
+}
+
 function normalizeKeyPair(raw) {
   if (!raw) {
     return null;
@@ -243,6 +268,23 @@ function renderCollection() {
       const didLine = document.createElement('span');
       didLine.textContent = `${translate('options.collection.meta.did')} ${identity.did}`;
       meta.appendChild(didLine);
+    }
+
+    if (identity.did && identity.publicKeyJwk) {
+      const verificationLine = document.createElement('span');
+      verificationLine.textContent = `${translate('options.collection.meta.verificationMethod')} ${getVerificationMethodId(
+        identity
+      )}`;
+      meta.appendChild(verificationLine);
+    }
+
+    if (identity.publicKeyJwk) {
+      const keyType = formatKeyType(identity.publicKeyJwk);
+      if (keyType) {
+        const keyLine = document.createElement('span');
+        keyLine.textContent = `${translate('options.collection.meta.keyType')} ${keyType}`;
+        meta.appendChild(keyLine);
+      }
     }
 
     if (identity.username) {

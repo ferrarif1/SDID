@@ -89,6 +89,27 @@ let translateText = (key, replacements) => {
 
 let loginOverlayVisible = false;
 
+// Proactively verify the extension context before calling chrome.* APIs.
+async function ensureExtensionAlive() {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!chrome?.runtime?.id) {
+        reject(new Error('EXTENSION_CONTEXT_INVALIDATED'));
+        return;
+      }
+      chrome.runtime.sendMessage({ type: 'sdid-ping' }, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error('EXTENSION_CONTEXT_INVALIDATED'));
+          return;
+        }
+        resolve(Boolean(response?.ok));
+      });
+    } catch (_e) {
+      reject(new Error('EXTENSION_CONTEXT_INVALIDATED'));
+    }
+  });
+}
+
 function normalizeString(value) {
   return (value || '').toLowerCase();
 }
@@ -1118,6 +1139,8 @@ async function handleLoginRequest(event) {
   loginOverlayVisible = true;
 
   try {
+    // Guard against extension reload/disable causing chrome.* calls to fail.
+    await ensureExtensionAlive();
     const preferredId = typeof event.data.identityId === 'string' ? event.data.identityId : null;
     const origin = event.origin || window.location.origin;
     const forcePrompt = Boolean(event.data.forcePrompt);
@@ -1210,7 +1233,9 @@ async function handleLoginRequest(event) {
         cancelled: isCancelled,
         error: isCancelled
           ? translateText('content.errors.loginCancelled')
-          : translateText('content.errors.loginFailed'),
+          : (error?.message === 'EXTENSION_CONTEXT_INVALIDATED'
+              ? 'Extension context invalidated. Please reload the page and ensure the extension is enabled.'
+              : translateText('content.errors.loginFailed')),
         requestId
       },
       '*'

@@ -288,49 +288,81 @@ function renderIdentities() {
 
 function createIdentityCard(identity) {
   const container = document.createElement('article');
-  
+  container.className = 'identity-card-content';
+
+  const header = document.createElement('header');
+  header.className = 'identity-header';
+
   const title = document.createElement('h2');
   title.textContent = identity.label || translate('common.untitledIdentity');
-  container.appendChild(title);
+  header.appendChild(title);
 
   if (identity.domain) {
     const domain = document.createElement('p');
     domain.className = 'identity-domain';
     domain.textContent = `${translate('popup.meta.domain')} ${identity.domain}`;
-    container.appendChild(domain);
+    header.appendChild(domain);
   }
 
-  const meta = document.createElement('div');
-  meta.className = 'identity-meta';
+  container.appendChild(header);
 
-  if (identity.roles?.length) {
-    const rolesChip = document.createElement('span');
-    rolesChip.textContent = `${translate('popup.meta.roles')} ${identity.roles.join(', ')}`;
-    meta.appendChild(rolesChip);
-  }
+  const detailList = document.createElement('dl');
+  detailList.className = 'identity-details';
 
   if (identity.did) {
-    const didChip = document.createElement('span');
-    didChip.className = 'mono';
-    didChip.textContent = `${translate('popup.meta.did')} ${identity.did}`;
-    meta.appendChild(didChip);
+    const didLabel = document.createElement('dt');
+    didLabel.textContent = translate('popup.meta.did');
+    detailList.appendChild(didLabel);
+
+    const didValue = document.createElement('dd');
+    didValue.className = 'mono';
+    didValue.textContent = identity.did;
+    detailList.appendChild(didValue);
+  }
+
+  if (identity.roles?.length) {
+    const rolesLabel = document.createElement('dt');
+    rolesLabel.textContent = translate('popup.meta.roles');
+    detailList.appendChild(rolesLabel);
+
+    const rolesValue = document.createElement('dd');
+    rolesValue.textContent = identity.roles.join(', ');
+    detailList.appendChild(rolesValue);
   }
 
   if (identity.tags?.length) {
-    const tagsChip = document.createElement('span');
-    tagsChip.textContent = `${translate('popup.meta.tags')} ${identity.tags.join(', ')}`;
-    meta.appendChild(tagsChip);
+    const tagsLabel = document.createElement('dt');
+    tagsLabel.textContent = translate('popup.meta.tags');
+    detailList.appendChild(tagsLabel);
+
+    const tagsValue = document.createElement('dd');
+    tagsValue.textContent = identity.tags.join(', ');
+    detailList.appendChild(tagsValue);
   }
 
-  if (meta.childElementCount) {
-    container.appendChild(meta);
+  if (identity.username) {
+    const usernameLabel = document.createElement('dt');
+    usernameLabel.textContent = translate('popup.meta.username');
+    detailList.appendChild(usernameLabel);
+
+    const usernameValue = document.createElement('dd');
+    usernameValue.textContent = identity.username;
+    detailList.appendChild(usernameValue);
   }
 
   if (identity.notes) {
-    const notes = document.createElement('p');
-    notes.className = 'identity-notes';
-    notes.textContent = identity.notes;
-    container.appendChild(notes);
+    const notesLabel = document.createElement('dt');
+    notesLabel.textContent = translate('popup.meta.notes');
+    detailList.appendChild(notesLabel);
+
+    const notesValue = document.createElement('dd');
+    notesValue.className = 'identity-notes';
+    notesValue.textContent = identity.notes;
+    detailList.appendChild(notesValue);
+  }
+
+  if (detailList.childElementCount) {
+    container.appendChild(detailList);
   }
 
   if (currentOrigin) {
@@ -347,32 +379,42 @@ function createIdentityCard(identity) {
   const actions = document.createElement('div');
   actions.className = 'card-actions';
 
+  const primaryActions = document.createElement('div');
+  primaryActions.className = 'action-group';
+
   const copyDidButton = document.createElement('button');
   copyDidButton.className = 'primary';
   copyDidButton.textContent = translate('popup.actions.copyDid');
   copyDidButton.addEventListener('click', () => copyDid(identity));
-  actions.appendChild(copyDidButton);
+  primaryActions.appendChild(copyDidButton);
 
   const copyKeyButton = document.createElement('button');
   copyKeyButton.className = 'secondary';
   copyKeyButton.textContent = translate('popup.actions.copyPublicKey');
   copyKeyButton.addEventListener('click', () => copyPublicKey(identity));
-  actions.appendChild(copyKeyButton);
+  primaryActions.appendChild(copyKeyButton);
 
   if (identity.username || identity.password) {
     const fillButton = document.createElement('button');
     fillButton.className = 'secondary';
     fillButton.textContent = translate('popup.actions.autofill');
     fillButton.addEventListener('click', () => fillIdentity(identity));
-    actions.appendChild(fillButton);
+    primaryActions.appendChild(fillButton);
   }
 
+  actions.appendChild(primaryActions);
+
   if (currentOrigin && isAuthorizedForOrigin(identity, currentOrigin)) {
+    const revokeGroup = document.createElement('div');
+    revokeGroup.className = 'action-group';
+
     const revokeButton = document.createElement('button');
     revokeButton.className = 'danger';
     revokeButton.textContent = translate('popup.actions.revokeSite');
     revokeButton.addEventListener('click', () => revokeCurrentOrigin(identity));
-    actions.appendChild(revokeButton);
+    revokeGroup.appendChild(revokeButton);
+
+    actions.appendChild(revokeGroup);
   }
 
   container.appendChild(actions);

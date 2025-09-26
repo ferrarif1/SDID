@@ -13,7 +13,17 @@ SDID is a Chrome extension that helps teams manage decentralized identities for 
   <img alt="Status" src="https://img.shields.io/badge/status-Alpha-yellow">
 </p>
 
-## Features ✨
+
+- **DID key management & signing｜DID 密钥管理与签名** – generate P-256 key pairs per identity, expose the DID, and sign login challenges for dapps. / 为每个身份生成 P-256 密钥对，公开 DID，并为去中心化应用的登录挑战生成签名。
+- **Per-site authorization control｜站点授权控制** – remember approved origins for one-click logins, or revoke them later from the options page. / 记住已授权的站点以便下次一键登录，也可在选项页随时撤销。
+- **Role-aware metadata｜角色与标签元数据** – capture roles, domains, tags, and notes to describe responsibilities or access boundaries. / 记录角色、域名、标签和备注，清晰表达权限范围与使用说明。
+- **Secure storage & backup｜安全存储与备份** – all identity data (including keys) lives in encrypted Chrome sync storage with JSON import/export support. / 身份数据（包含密钥）保存在受加密保护的 Chrome 同步存储中，并支持 JSON 导入导出备份。
+- **Autofill fallback｜表单自动填充备援** – keep optional usernames/passwords for legacy systems and inject them into the current tab in one click. / 可为传统系统保存备用用户名与密码，并在当前页面一键填充。
+- **Verifiable DID auth proofs｜可验证的 DID 授权凭证** – login responses ship with a canonicalized payload and W3C-style proof so relying parties can audit who signed what. / 登录响应附带经过规范化的负载与 W3C 风格的证明对象，方便接入方验证签名者与签名内容。
+- **Language toggle｜语言切换** – switch between English and Chinese across the popup, options page, and approval overlays with a single tap. / 弹窗、选项页与确认覆盖层均可一键切换中英文，界面即时更新。
+- **Minimal interface｜纯色线条界面** – refreshed visual styling inspired by Google/Apple design language: light surfaces, clean lines, and focused typography. / 参考 Google 与 Apple 的设计语言，界面以纯色与线条为主，排版更简洁、层次更清晰。
+- **Demo dApp｜演示应用** – the `/demo` folder hosts a ready-to-run site that requests SDID login and verifies the returned signature. / `/demo` 目录提供可直接运行的站点，用于发起 SDID 登录并验证返回的签名。
+
 
 - DID key management & signing – generate P-256 key pairs per identity, expose the DID, and sign login challenges for dapps.
 - Per-site authorization control – remember approved origins for one-click logins, or revoke them later from the options page.
@@ -25,9 +35,11 @@ SDID is a Chrome extension that helps teams manage decentralized identities for 
 - Minimal interface – refreshed visual styling inspired by Google/Apple design language: light surfaces, clean lines, and focused typography.
 - Demo dApp – the `/demo` folder hosts a ready-to-run site that requests SDID login and verifies the returned signature.
 
-## Quick confirm login workflow ⚡
 
 Web apps can call SDID from the page context and receive a streamlined confirmation dialog that mirrors popular wallet-to-dapp experiences. The sheet lets the user pick an identity, review roles and DID details, and optionally remember the requesting origin. Once confirmed, SDID produces a canonical authentication payload, signs it with the identity’s private key, attaches a W3C-style proof object, and (when possible) fills matching username/password fields automatically.
+
+网页应用可以直接在页面上下文中调用 SDID，并获得与常见钱包连接类似的快速确认体验。弹窗会展示身份名称、角色与 DID 详情，用户可选择记住当前站点。确认后，SDID 会生成经过规范化的认证负载，用该身份的私钥签名并附上符合 W3C 规范的证明对象，同时在检测到用户名或密码输入框时自动填充。
+
 
 ### Requesting a login from a web app
 
@@ -49,6 +61,7 @@ Web apps can call SDID from the page context and receive a streamlined confirmat
 
       const canonicalRequest = response.authentication?.canonicalRequest || response.challenge;
       console.log('Canonical payload', response.authentication?.payload);
+      // If you need to re-create the canonical string, reuse the JSON canonicalization logic from the extension.
 
       const publicKey = await crypto.subtle.importKey(
         'jwk',

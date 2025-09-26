@@ -784,7 +784,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     detailList.className = 'sdid-login-detail-list';
     dialog.appendChild(detailList);
 
-
     function createDetailItem(list, iconName) {
       const item = document.createElement('li');
       item.className = 'sdid-login-detail-item';
@@ -799,6 +798,7 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         icon.textContent = '•';
       }
       item.appendChild(icon);
+
 
       const textWrap = document.createElement('div');
       textWrap.className = 'sdid-login-item-text';
@@ -816,7 +816,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
 
       return { item, label, value };
     }
-
 
     const detailItems = {
       site: createDetailItem(detailList, 'site'),
@@ -839,7 +838,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       selectLabel.appendChild(select);
       dialog.appendChild(selectLabel);
     }
-
 
     const actions = document.createElement('div');
     actions.className = 'sdid-login-actions';
@@ -913,7 +911,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
         return;
       }
 
-
       const identityLabel = identity.label || identity.username || translateText('common.untitledIdentity');
       detailItems.identity.value.textContent = identityLabel;
       detailItems.identity.item.hidden = false;
@@ -924,7 +921,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       } else {
         detailItems.did.value.textContent = '';
         detailItems.did.item.hidden = true;
-
       }
     };
 
@@ -947,7 +943,6 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
       detailItems.time.value.textContent = formatTimestamp(requestedAt, activeLang);
       detailItems.identity.label.textContent = translateText('content.overlay.summaryIdentity');
       detailItems.did.label.textContent = translateText('content.overlay.summaryDid');
-
 
       if (selectLabel && selectTitle) {
         selectTitle.textContent = translateText('content.overlay.chooseIdentity');
@@ -1251,7 +1246,7 @@ window.addEventListener('message', handleLoginRequest);
   style.id = styleId;
   style.textContent = `
     .sdid-identity-filled {
-      outline: 2px solid rgba(37, 99, 235, 0.45);
+      outline: 2px solid rgba(43, 37, 31, 0.35);
       transition: outline 0.3s ease;
     }
     .sdid-login-overlay {
@@ -1262,17 +1257,17 @@ window.addEventListener('message', handleLoginRequest);
       align-items: flex-start;
       justify-content: flex-end;
       padding: 24px;
-      background: rgba(15, 23, 42, 0.12);
-      font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif;
+      background: rgba(33, 27, 21, 0.18);
+      font-family: 'Inter', 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
     }
     .sdid-login-dialog {
-      background: #ffffff;
-      color: #0f172a;
+      background: #f4f0e7;
+      color: #1f1d1b;
       width: min(340px, calc(100% - 32px));
-      border-radius: 18px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 24px 40px rgba(15, 23, 42, 0.16);
-      padding: 20px;
+      border-radius: 22px;
+      border: 1px solid #e1d8cc;
+      box-shadow: 0 24px 36px rgba(33, 27, 21, 0.16);
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -1326,12 +1321,17 @@ window.addEventListener('message', handleLoginRequest);
       align-items: center;
       gap: 12px;
     }
+    .sdid-login-header-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     .sdid-login-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 16px;
-      background: #eef2ff;
-      color: #1d4ed8;
+      width: 44px;
+      height: 44px;
+      border-radius: 18px;
+      background: #ebe2d7;
+      color: #1f1d1b;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1348,15 +1348,15 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-header-text h2 {
       margin: 0;
-      font-size: 1.05rem;
+      font-size: 1.06rem;
       font-weight: 600;
-      color: #0f172a;
+      color: #1f1d1b;
     }
     .sdid-login-subtitle {
       margin: 0;
       font-size: 0.85rem;
-      color: #475569;
-      line-height: 1.35;
+      color: #5d564f;
+      line-height: 1.4;
     }
     .sdid-language-switch {
       display: inline-flex;
@@ -1364,8 +1364,8 @@ window.addEventListener('message', handleLoginRequest);
       gap: 4px;
       padding: 3px;
       border-radius: 999px;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
+      border: 1px solid #ded3c5;
+      background: #f7f2ea;
     }
     .sdid-language-switch button {
       border: none;
@@ -1374,30 +1374,29 @@ window.addEventListener('message', handleLoginRequest);
       padding: 4px 10px;
       font-size: 0.72rem;
       font-weight: 600;
-      color: #64748b;
+      color: #645c54;
       cursor: pointer;
       transition: background 0.2s ease, color 0.2s ease;
     }
     .sdid-language-switch button:hover {
-      color: #1d4ed8;
+      color: #1f1d1b;
     }
     .sdid-language-switch button.active {
-      background: #1d4ed8;
-      color: #ffffff;
+      background: #1f1d1b;
+      color: #f4f0e7;
     }
     .sdid-language-switch button:focus-visible {
       outline: none;
-
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.24);
+      box-shadow: 0 0 0 2px rgba(31, 29, 27, 0.2);
     }
     .sdid-login-message {
       margin: 0;
       padding: 12px 14px;
-      border-radius: 14px;
-      background: #f8fafc;
-      color: #334155;
-      font-size: 0.88rem;
-      line-height: 1.4;
+      border-radius: 16px;
+      background: #f8f4ee;
+      color: #4f473f;
+      font-size: 0.9rem;
+      line-height: 1.45;
     }
     .sdid-login-detail-list {
       list-style: none;
@@ -1415,9 +1414,9 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-login-item-icon {
       width: 28px;
       height: 28px;
-      border-radius: 12px;
-      background: #f1f5f9;
-      color: #1d4ed8;
+      border-radius: 50px;
+      background: #efe7dc;
+      color: #1f1d1b;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1436,13 +1435,13 @@ window.addEventListener('message', handleLoginRequest);
       font-size: 0.74rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      color: #64748b;
+      color: #7a7067;
       font-weight: 600;
     }
     .sdid-login-item-value {
       font-size: 0.9rem;
-      color: #0f172a;
-      line-height: 1.4;
+      color: #1f1d1b;
+      line-height: 1.45;
       word-break: break-word;
     }
     .sdid-login-select {
@@ -1453,21 +1452,21 @@ window.addEventListener('message', handleLoginRequest);
     .sdid-login-select > span {
       font-size: 0.78rem;
       font-weight: 600;
-      color: #1e293b;
+      color: #352f2a;
     }
     .sdid-login-select select {
-      border: 1px solid #dbe2f3;
-      border-radius: 12px;
-      padding: 8px 12px;
+      border: 1px solid #d7cbbd;
+      border-radius: 14px;
+      padding: 9px 12px;
       font-size: 0.9rem;
-      background: #ffffff;
-      color: #0f172a;
+      background: #fdfaf5;
+      color: #1f1d1b;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .sdid-login-select select:focus-visible {
       outline: none;
-      border-color: #1d4ed8;
-      box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.18);
+      border-color: #b8a995;
+      box-shadow: 0 0 0 2px rgba(184, 169, 149, 0.4);
     }
     .sdid-login-actions {
       display: flex;
@@ -1487,30 +1486,30 @@ window.addEventListener('message', handleLoginRequest);
     }
     .sdid-login-actions button:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.24);
+      box-shadow: 0 0 0 3px rgba(31, 29, 27, 0.18);
     }
     .sdid-login-cancel {
-      background: #eef2ff;
-      color: #1d4ed8;
-      border-color: #eef2ff;
+      background: #f7f2ea;
+      color: #1f1d1b;
+      border-color: #ded3c5;
     }
     .sdid-login-cancel:hover,
     .sdid-login-cancel:focus-visible {
-      background: #e0e7ff;
-      border-color: #e0e7ff;
-      color: #1e40af;
+      background: #efe7dc;
+      border-color: #d3c6b7;
+      color: #1f1d1b;
     }
     .sdid-login-confirm {
-      background: #1d4ed8;
-      border-color: #1d4ed8;
-      color: #ffffff;
-      box-shadow: 0 12px 22px rgba(29, 78, 216, 0.25);
+      background: #1f1d1b;
+      border-color: #1f1d1b;
+      color: #f4f0e7;
+      box-shadow: 0 12px 22px rgba(31, 29, 27, 0.25);
     }
     .sdid-login-confirm:hover,
     .sdid-login-confirm:focus-visible {
-      background: #1e40af;
-      border-color: #1e40af;
-      color: #ffffff;
+      background: #2c2925;
+      border-color: #2c2925;
+      color: #f7f2ea;
     }
     @media (max-width: 600px) {
       .sdid-login-overlay {

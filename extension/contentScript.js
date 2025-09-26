@@ -7,50 +7,93 @@ const LOGIN_OVERLAY_ID = 'sdid-login-overlay';
 const usernameKeywords = ['user', 'email', 'login', 'account', 'identifier', 'phone'];
 const passwordKeywords = ['pass', 'password', 'secret', 'pin', 'code'];
 
-const fallbackTranslations = {
-  'content.errors.missingIdentity': 'Missing identity payload.',
-  'content.errors.usernameFillFailed': 'Unable to populate username field.',
-  'content.errors.usernameMissing': 'No username field detected on this page.',
-  'content.errors.passwordFillFailed': 'Unable to populate password field.',
-  'content.errors.passwordMissing': 'No password field detected on this page.',
-  'content.errors.noCredentials': 'Identity does not contain username or password values to fill.',
-  'content.overlay.title': 'SDID login request',
-  'content.overlay.subtitle': 'Review and approve this sign-in request.',
-  'content.overlay.origin': 'Origin',
-  'content.overlay.chooseIdentity': 'Choose identity',
-  'content.overlay.remember': 'Remember this site for one-click approvals',
-  'content.overlay.rememberAuthorized': 'This site is already authorized. Uncheck to require approval next time.',
-  'content.overlay.rememberHint': 'Keep this checked to approve future logins instantly.',
-  'content.overlay.sectionRequest': 'Request details',
-  'content.overlay.sectionIdentity': 'Identity preview',
-  'content.overlay.summarySite': 'Site',
-  'content.overlay.summaryTime': 'Requested at',
-  'content.overlay.summaryRequestId': 'Request ID',
-  'content.overlay.summaryChallenge': 'Challenge nonce',
-  'content.overlay.summaryIdentity': 'Identity',
-  'content.overlay.summaryDid': 'DID',
-  'content.overlay.summaryRoles': 'Roles',
-  'content.overlay.summaryDomain': 'Trusted domain',
-  'content.overlay.summaryUsername': 'Username',
-  'content.overlay.summaryNotes': 'Notes',
-  'content.overlay.summaryVerification': 'Verification method',
-  'content.overlay.summaryKeyType': 'Key type',
-  'content.overlay.summaryTags': 'Tags',
-  'content.errors.alreadyPending': 'Another login request is already pending. Please complete it first.',
-  'content.errors.noIdentities': 'No eligible DID identities are saved in SDID.',
-  'content.errors.identityNotFound': 'The selected identity could not be located.',
-  'content.errors.loginCancelled': 'Login request cancelled by user.',
-  'content.errors.loginFailed': 'Login request failed.',
-  'common.cancel': 'Cancel',
-  'common.confirm': 'Confirm',
-  'common.untitledIdentity': 'Untitled identity',
-  'common.languageLabel': 'Language',
-  'common.languageEnglish': 'English',
-  'common.languageChinese': '中文'
+const fallbackDictionaries = {
+  en: {
+    'content.errors.missingIdentity': 'Missing identity payload.',
+    'content.errors.usernameFillFailed': 'Unable to populate username field.',
+    'content.errors.usernameMissing': 'No username field detected on this page.',
+    'content.errors.passwordFillFailed': 'Unable to populate password field.',
+    'content.errors.passwordMissing': 'No password field detected on this page.',
+    'content.errors.noCredentials': 'Identity does not contain username or password values to fill.',
+    'content.overlay.title': 'SDID login request',
+    'content.overlay.subtitle': 'Review and approve this sign-in request.',
+    'content.overlay.origin': 'Origin',
+    'content.overlay.chooseIdentity': 'Choose identity',
+    'content.overlay.remember': 'Remember this site for one-click approvals',
+    'content.overlay.rememberAuthorized': 'This site is already authorized. Uncheck to require approval next time.',
+    'content.overlay.rememberHint': 'Keep this checked to approve future logins instantly.',
+    'content.overlay.sectionRequest': 'Request details',
+    'content.overlay.sectionIdentity': 'Identity preview',
+    'content.overlay.summarySite': 'Site',
+    'content.overlay.summaryTime': 'Requested at',
+    'content.overlay.summaryRequestId': 'Request ID',
+    'content.overlay.summaryChallenge': 'Challenge nonce',
+    'content.overlay.summaryIdentity': 'Identity',
+    'content.overlay.summaryDid': 'DID',
+    'content.overlay.summaryRoles': 'Roles',
+    'content.overlay.summaryDomain': 'Trusted domain',
+    'content.overlay.summaryUsername': 'Username',
+    'content.overlay.summaryNotes': 'Notes',
+    'content.overlay.summaryVerification': 'Verification method',
+    'content.overlay.summaryKeyType': 'Key type',
+    'content.overlay.summaryTags': 'Tags',
+    'content.errors.alreadyPending': 'Another login request is already pending. Please complete it first.',
+    'content.errors.noIdentities': 'No eligible DID identities are saved in SDID.',
+    'content.errors.identityNotFound': 'The selected identity could not be located.',
+    'content.errors.loginCancelled': 'Login request cancelled by user.',
+    'content.errors.loginFailed': 'Login request failed.',
+    'common.cancel': 'Cancel',
+    'common.confirm': 'Confirm',
+    'common.untitledIdentity': 'Untitled identity',
+    'common.languageLabel': 'Language',
+    'common.languageEnglish': 'English',
+    'common.languageChinese': '中文'
+  },
+  zh: {
+    'content.errors.missingIdentity': '缺少身份数据。',
+    'content.errors.usernameFillFailed': '无法填充用户名输入框。',
+    'content.errors.usernameMissing': '未检测到用户名输入框。',
+    'content.errors.passwordFillFailed': '无法填充密码输入框。',
+    'content.errors.passwordMissing': '未检测到密码输入框。',
+    'content.errors.noCredentials': '该身份未包含可用于填充的用户名或密码。',
+    'content.overlay.title': 'SDID 登录请求',
+    'content.overlay.subtitle': '请确认并签署本次登录请求。',
+    'content.overlay.origin': '请求站点',
+    'content.overlay.chooseIdentity': '选择登录身份',
+    'content.overlay.remember': '记住此站点，下次一键授权',
+    'content.overlay.rememberAuthorized': '当前站点已授权，取消勾选则下次重新确认。',
+    'content.overlay.rememberHint': '保持勾选以便下次自动快速授权。',
+    'content.overlay.sectionRequest': '请求信息',
+    'content.overlay.sectionIdentity': '身份预览',
+    'content.overlay.summarySite': '站点',
+    'content.overlay.summaryTime': '请求时间',
+    'content.overlay.summaryRequestId': '请求 ID',
+    'content.overlay.summaryChallenge': '随机挑战值',
+    'content.overlay.summaryIdentity': '身份',
+    'content.overlay.summaryDid': 'DID',
+    'content.overlay.summaryRoles': '角色',
+    'content.overlay.summaryDomain': '信任域名',
+    'content.overlay.summaryUsername': '用户名',
+    'content.overlay.summaryNotes': '备注',
+    'content.overlay.summaryVerification': '验证方法',
+    'content.overlay.summaryKeyType': '密钥类型',
+    'content.overlay.summaryTags': '标签',
+    'content.errors.alreadyPending': '已有其他登录请求正在等待处理，请先完成。',
+    'content.errors.noIdentities': 'SDID 中尚未保存可用的 DID 身份。',
+    'content.errors.identityNotFound': '未找到所选择的身份。',
+    'content.errors.loginCancelled': '用户已取消登录请求。',
+    'content.errors.loginFailed': '登录请求处理失败。',
+    'common.cancel': '取消',
+    'common.confirm': '确认',
+    'common.untitledIdentity': '未命名身份',
+    'common.languageLabel': '语言',
+    'common.languageEnglish': 'English',
+    'common.languageChinese': '中文'
+  }
 };
 
 let i18nApi = null;
-let currentLanguage = 'en';
+let currentLanguage = (typeof navigator !== 'undefined' && (navigator.language || '').toLowerCase().startsWith('zh')) ? 'zh' : 'en';
 let supportedLanguages = ['en', 'zh'];
 
 function formatTemplate(template, replacements = {}) {
@@ -63,7 +106,8 @@ function formatTemplate(template, replacements = {}) {
 }
 
 let translateText = (key, replacements) => {
-  const template = fallbackTranslations[key] || key;
+  const dict = fallbackDictionaries[currentLanguage] || fallbackDictionaries.en;
+  const template = dict[key] || key;
   return formatTemplate(template, replacements);
 };
 
@@ -852,6 +896,13 @@ function createLoginOverlay(identities, initialId, requestOrigin, requestMessage
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button';
     confirmButton.className = 'sdid-login-confirm';
+    confirmButton.addEventListener('pointerdown', (e) => {
+      const rect = confirmButton.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      confirmButton.style.setProperty('--ripple-x', x + '%');
+      confirmButton.style.setProperty('--ripple-y', y + '%');
+    });
 
     actions.appendChild(cancelButton);
     actions.appendChild(confirmButton);

@@ -4,14 +4,20 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  width: 360px;
+  min-width: 360px;
+}
+
 body {
   margin: 0;
-  width: min(320px, 100vw);
-  min-height: 380px;
-  padding: 18px;
+  width: 360px;
+  min-height: 400px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   color: var(--sdid-color-text);
   background: var(--sdid-surface-gradient);
   position: relative;
@@ -132,8 +138,8 @@ button {
   color: var(--sdid-color-text);
   font-weight: 600;
   cursor: pointer;
-  transition: transform var(--sdid-transition-base), box-shadow var(--sdid-transition-base), border-color var(--sdid-transition-base),
-    background-color var(--sdid-transition-base), color var(--sdid-transition-base);
+  transition: transform var(--sdid-transition-fast), box-shadow var(--sdid-transition-fast), border-color var(--sdid-transition-fast),
+    background-color var(--sdid-transition-fast), color var(--sdid-transition-fast);
   box-shadow: var(--sdid-shadow-button);
   display: inline-flex;
   align-items: center;
@@ -213,10 +219,10 @@ button.ghost:focus-visible {
 
 main {
   flex: 1;
-  padding: 18px 18px 20px;
+  padding: 20px 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   overflow-y: auto;
 }
 
@@ -234,7 +240,7 @@ main::-webkit-scrollbar-thumb {
   background: var(--sdid-color-surface);
   border: 1px solid var(--sdid-color-border);
   border-radius: 22px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: var(--sdid-shadow-card);
   animation: fadeInUp 0.28s ease both;
 }
@@ -279,7 +285,7 @@ main::-webkit-scrollbar-thumb {
 .search {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .search-label {
@@ -292,7 +298,7 @@ main::-webkit-scrollbar-thumb {
 
 .search input {
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: var(--sdid-radius-control);
   border: 1px solid var(--sdid-color-border);
   background: var(--sdid-color-surface);
@@ -317,21 +323,53 @@ main::-webkit-scrollbar-thumb {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .identity-card {
   border: 1px solid var(--sdid-color-border);
   border-radius: var(--sdid-radius-card);
-  padding: 16px;
+  padding: 20px;
   background: var(--sdid-color-surface);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   box-shadow: var(--sdid-shadow-floating);
-  transition: transform var(--sdid-transition-base), box-shadow var(--sdid-transition-base), border-color var(--sdid-transition-base);
-  animation: fadeInUp 0.3s ease both;
+  transition: transform var(--sdid-transition-slow), box-shadow var(--sdid-transition-slow), border-color var(--sdid-transition-slow);
+  animation: sdid-fade-up 0.34s var(--sdid-ease-emph) both;
 }
+
+.identity-card {
+  transform-origin: center top;
+}
+.identity-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 28px 48px rgba(28, 24, 19, 0.18);
+}
+
+.card-actions button {
+  position: relative;
+  overflow: hidden;
+}
+.card-actions button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 0%), rgba(255,255,255,0.4), transparent 55%);
+  opacity: 0;
+  transition: opacity var(--sdid-transition-fast);
+  pointer-events: none;
+}
+.card-actions button:hover::after,
+.card-actions button:focus-visible::after {
+  opacity: 1;
+}
+
+.list-enter [data-animate],
+.list-enter .identity-card { opacity: 0; transform: translateY(6px) scale(0.99); }
+.list-enter-active [data-animate],
+.list-enter-active .identity-card { opacity: 1; transform: translateY(0) scale(1); transition: transform var(--sdid-transition-slow), opacity var(--sdid-transition-slow); }
 
 .identity-card:hover {
   transform: translateY(-2px);
@@ -346,7 +384,8 @@ main::-webkit-scrollbar-thumb {
 
 .identity-domain {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
   color: var(--sdid-color-muted);
   overflow-wrap: anywhere;
 }
@@ -354,7 +393,7 @@ main::-webkit-scrollbar-thumb {
 .identity-meta {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   font-size: 0.76rem;
   color: var(--sdid-color-muted);
 }
@@ -363,7 +402,7 @@ main::-webkit-scrollbar-thumb {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-radius: 10px;
   background: var(--sdid-color-accent-soft);
   border: 1px solid var(--sdid-color-border);

@@ -269,6 +269,7 @@ function isAuthorizedForOrigin(identity, origin) {
 
 function renderIdentities() {
   identityList.innerHTML = '';
+  identityList.classList.add('list-enter');
   if (!filteredIdentities.length) {
     emptyState.hidden = false;
     return;
@@ -278,12 +279,16 @@ function renderIdentities() {
   filteredIdentities
     .slice()
     .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
-    .forEach((identity) => {
+    .forEach((identity, index) => {
       const listItem = document.createElement('li');
       listItem.className = 'identity-card';
+      listItem.style.animationDelay = `${Math.min(index, 8) * 30}ms`;
       listItem.appendChild(createIdentityCard(identity));
       identityList.appendChild(listItem);
     });
+  requestAnimationFrame(() => {
+    identityList.classList.remove('list-enter');
+  });
 }
 
 function createIdentityCard(identity) {
@@ -350,20 +355,20 @@ function createIdentityCard(identity) {
   const copyDidButton = document.createElement('button');
   copyDidButton.className = 'primary';
   copyDidButton.textContent = translate('popup.actions.copyDid');
-  copyDidButton.addEventListener('click', () => copyDid(identity));
+  copyDidButton.addEventListener('click', (e) => { ripple(e); copyDid(identity); });
   actions.appendChild(copyDidButton);
 
   const copyKeyButton = document.createElement('button');
   copyKeyButton.className = 'secondary';
   copyKeyButton.textContent = translate('popup.actions.copyPublicKey');
-  copyKeyButton.addEventListener('click', () => copyPublicKey(identity));
+  copyKeyButton.addEventListener('click', (e) => { ripple(e); copyPublicKey(identity); });
   actions.appendChild(copyKeyButton);
 
   if (identity.username || identity.password) {
     const fillButton = document.createElement('button');
     fillButton.className = 'secondary';
     fillButton.textContent = translate('popup.actions.autofill');
-    fillButton.addEventListener('click', () => fillIdentity(identity));
+    fillButton.addEventListener('click', (e) => { ripple(e); fillIdentity(identity); });
     actions.appendChild(fillButton);
   }
 
@@ -371,12 +376,23 @@ function createIdentityCard(identity) {
     const revokeButton = document.createElement('button');
     revokeButton.className = 'danger';
     revokeButton.textContent = translate('popup.actions.revokeSite');
-    revokeButton.addEventListener('click', () => revokeCurrentOrigin(identity));
+    revokeButton.addEventListener('click', (e) => { ripple(e); revokeCurrentOrigin(identity); });
     actions.appendChild(revokeButton);
   }
 
   container.appendChild(actions);
   return container;
+}
+
+// Button ripple helper (CSS-driven)
+function ripple(event) {
+  const button = event.currentTarget;
+  if (!button) return;
+  const rect = button.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 100;
+  const y = ((event.clientY - rect.top) / rect.height) * 100;
+  button.style.setProperty('--ripple-x', x + '%');
+  button.style.setProperty('--ripple-y', y + '%');
 }
 
 async function revokeCurrentOrigin(identity) {

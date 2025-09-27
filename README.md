@@ -4,6 +4,8 @@ SDID is a Chrome extension that helps teams manage decentralized identities for 
 
 SDID 是一个 Chrome 浏览器扩展，帮助团队在无密码或通行密钥优先的场景下管理去中心化身份。你可以生成 DID 密钥对、为登录挑战签名、保存备用凭据，并在工具栏上一键审批 dapp 请求。
 
+![演示动画](images/demo.gif)
+
 ## Features｜功能特点
 
 - **DID key management & signing｜DID 密钥管理与签名** – generate P-256 key pairs per identity, expose the DID, and sign login challenges for dapps. / 为每个身份生成 P-256 密钥对，公开 DID，并为去中心化应用的登录挑战生成签名。

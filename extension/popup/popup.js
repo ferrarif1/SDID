@@ -6,6 +6,7 @@ import {
   onLanguageChange,
   applyTranslations
 } from '../shared/i18n.js';
+import { registerTextFit, recalibrateTextFits, fitTextNow } from '../shared/textFit.js';
 
 const IDENTITY_STORAGE_KEY = 'identities';
 
@@ -13,19 +14,45 @@ const identityList = document.getElementById('identity-list');
 const searchInput = document.getElementById('search');
 const statusMessage = document.getElementById('status-message');
 const emptyState = document.getElementById('empty-state');
+const emptyMessage = emptyState ? emptyState.querySelector('.empty-message') : null;
 const createFirstButton = document.getElementById('create-first');
 const manageButton = document.getElementById('open-options');
+const searchLabel = document.querySelector('.search-label');
 const languageToggle = document.getElementById('language-toggle');
 const languageButtons = languageToggle ? Array.from(languageToggle.querySelectorAll('button')) : [];
-const permissionBanner = document.getElementById('permission-banner');
-const permissionButton = document.getElementById('enable-site');
-const permissionOriginValue = document.getElementById('permission-origin-value');
-
 let currentLanguage = getLanguage();
+
+const staticFitTargets = [
+  { element: searchLabel, options: { maxLines: 1 } },
+  { element: createFirstButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: manageButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: statusMessage, options: { maxLines: 2 } },
+  { element: emptyMessage, options: { maxLines: 3 } }
+];
+
+staticFitTargets.forEach(({ element, options }) => {
+  if (element) {
+    registerTextFit(element, options);
+  }
+});
+
+languageButtons.forEach((button) => {
+  registerTextFit(button, { maxLines: 1, preserveTitle: false });
+});
+
+function syncStaticFullText() {
+  staticFitTargets.forEach(({ element }) => {
+    if (element) {
+      element.dataset.fullText = element.textContent || '';
+    }
+  });
+  languageButtons.forEach((button) => {
+    button.dataset.fullText = button.textContent || '';
+  });
+}
 
 let identities = [];
 let filteredIdentities = [];
-let currentOrigin = null;
 let activeTabId = null;
 
 function parseList(value) {
@@ -44,27 +71,6 @@ function safeParseJson(value) {
   } catch (_error) {
     return null;
   }
-}
-
-function isHttpOrigin(origin) {
-  return typeof origin === 'string' && /^https?:\/\//i.test(origin);
-}
-
-function toOriginPattern(origin) {
-  if (!isHttpOrigin(origin)) {
-    return null;
-  }
-  return `${origin.replace(/\/$/, '')}/*`;
-}
-
-function getContentScriptId(pattern) {
-  const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  return `sdid_bridge_${sanitized.slice(0, 120)}`;
-}
-
-function getMainWorldScriptId(pattern) {
-  const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  return `sdid_bridge_page_${sanitized.slice(0, 116)}`;
 }
 
 function normalizeIdentity(raw) {
@@ -101,69 +107,8 @@ async function loadActiveContext() {
     if (activeTab?.id) {
       activeTabId = activeTab.id;
     }
-    if (activeTab?.url) {
-      try {
-        const parsedOrigin = new URL(activeTab.url).origin;
-        currentOrigin = isHttpOrigin(parsedOrigin) ? parsedOrigin : null;
-      } catch (_error) {
-        currentOrigin = null;
-      }
-    }
-    if (permissionOriginValue) {
-      permissionOriginValue.textContent = currentOrigin || '';
-    }
   } catch (error) {
     console.error('Unable to determine active tab context', error);
-  }
-}
-
-async function updatePermissionState() {
-  if (!permissionBanner) {
-    return false;
-  }
-
-  if (permissionOriginValue) {
-    permissionOriginValue.textContent = currentOrigin || '';
-  }
-
-  const canRequest = Boolean(activeTabId) && isHttpOrigin(currentOrigin);
-  if (permissionButton) {
-    permissionButton.disabled = !canRequest;
-  }
-
-  if (!canRequest) {
-    permissionBanner.hidden = true;
-    return false;
-  }
-
-  const originPattern = toOriginPattern(currentOrigin);
-  if (!originPattern) {
-    permissionBanner.hidden = true;
-    if (permissionButton) {
-      permissionButton.disabled = true;
-    }
-    return false;
-  }
-
-  try {
-    const hasPermission = await chrome.permissions.contains({ origins: [originPattern] });
-    permissionBanner.hidden = hasPermission;
-    if (hasPermission) {
-      try {
-        await ensureContentScriptRegistration(originPattern);
-        await ensureBridgeInjectedIntoActiveTab();
-      } catch (error) {
-        console.warn('Unable to refresh SDID bridge for origin', originPattern, error);
-      }
-    }
-    return hasPermission;
-  } catch (error) {
-    console.error('Unable to determine SDID permissions for origin', error);
-    permissionBanner.hidden = true;
-    if (permissionButton) {
-      permissionButton.disabled = true;
-    }
-    return false;
   }
 }
 
@@ -172,73 +117,6 @@ async function loadIdentities() {
   const items = Array.isArray(stored[IDENTITY_STORAGE_KEY]) ? stored[IDENTITY_STORAGE_KEY] : [];
   identities = items.map(normalizeIdentity).filter(Boolean);
   applyFilter(searchInput.value.trim());
-}
-
-async function ensureContentScriptRegistration(originPattern) {
-  if (!originPattern || !chrome?.scripting?.registerContentScripts) {
-    return;
-  }
-  const scriptId = getContentScriptId(originPattern);
-  const pageScriptId = getMainWorldScriptId(originPattern);
-  try {
-    await chrome.scripting.unregisterContentScripts({ ids: [scriptId, pageScriptId] });
-  } catch (error) {
-    const message = String(error?.message || '');
-    if (!/no\sregistered\scontent\sscript/i.test(message) && !/invalid\sscript\sid/i.test(message)) {
-      console.debug('No existing SDID bridge registration to remove', error);
-    }
-  }
-  await chrome.scripting.registerContentScripts([
-    {
-      id: scriptId,
-      js: ['contentScript.js'],
-      matches: [originPattern],
-      runAt: 'document_start',
-      persistAcrossSessions: true
-    },
-    {
-      id: pageScriptId,
-      js: ['pageBridge.js'],
-      matches: [originPattern],
-      runAt: 'document_start',
-      world: 'MAIN',
-      persistAcrossSessions: true
-    }
-  ]);
-}
-
-async function ensureBridgeInjectedIntoActiveTab() {
-  if (!activeTabId || !chrome?.scripting?.executeScript) {
-    return;
-  }
-  let alreadyInjected = false;
-  try {
-    const response = await chrome.tabs.sendMessage(activeTabId, { type: 'sdid-ping' });
-    alreadyInjected = Boolean(response?.ok);
-  } catch (_error) {
-    alreadyInjected = false;
-  }
-  if (alreadyInjected) {
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: activeTabId },
-        files: ['pageBridge.js'],
-        world: 'MAIN'
-      });
-    } catch (error) {
-      console.warn('Unable to refresh SDID page bridge', error);
-    }
-    return;
-  }
-  await chrome.scripting.executeScript({
-    target: { tabId: activeTabId },
-    files: ['contentScript.js']
-  });
-  await chrome.scripting.executeScript({
-    target: { tabId: activeTabId },
-    files: ['pageBridge.js'],
-    world: 'MAIN'
-  });
 }
 
 function applyFilter(query) {
@@ -260,18 +138,11 @@ function applyFilter(query) {
   renderIdentities();
 }
 
-function isAuthorizedForOrigin(identity, origin) {
-  if (!origin) {
-    return false;
-  }
-  return identity.authorizedOrigins?.some((entry) => entry.origin === origin);
-}
-
 function renderIdentities() {
   identityList.innerHTML = '';
-  identityList.classList.add('list-enter');
   if (!filteredIdentities.length) {
     emptyState.hidden = false;
+    recalibrateTextFits();
     return;
   }
   emptyState.hidden = true;
@@ -279,31 +150,23 @@ function renderIdentities() {
   filteredIdentities
     .slice()
     .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
-    .forEach((identity, index) => {
+    .forEach((identity) => {
       const listItem = document.createElement('li');
       listItem.className = 'identity-card';
-      listItem.style.animationDelay = `${Math.min(index, 8) * 30}ms`;
       listItem.appendChild(createIdentityCard(identity));
       identityList.appendChild(listItem);
     });
-  requestAnimationFrame(() => {
-    identityList.classList.remove('list-enter');
-  });
+
+  recalibrateTextFits();
 }
 
 function createIdentityCard(identity) {
   const container = document.createElement('article');
-  
+
   const title = document.createElement('h2');
   title.textContent = identity.label || translate('common.untitledIdentity');
   container.appendChild(title);
-
-  if (identity.domain) {
-    const domain = document.createElement('p');
-    domain.className = 'identity-domain';
-    domain.textContent = `${translate('popup.meta.domain')} ${identity.domain}`;
-    container.appendChild(domain);
-  }
+  registerTextFit(title, { maxLines: 2 });
 
   const meta = document.createElement('div');
   meta.className = 'identity-meta';
@@ -312,6 +175,7 @@ function createIdentityCard(identity) {
     const rolesChip = document.createElement('span');
     rolesChip.textContent = `${translate('popup.meta.roles')} ${identity.roles.join(', ')}`;
     meta.appendChild(rolesChip);
+    registerTextFit(rolesChip, { maxLines: 1 });
   }
 
   if (identity.did) {
@@ -319,12 +183,14 @@ function createIdentityCard(identity) {
     didChip.className = 'mono';
     didChip.textContent = `${translate('popup.meta.did')} ${identity.did}`;
     meta.appendChild(didChip);
+    registerTextFit(didChip, { maxLines: 1 });
   }
 
   if (identity.tags?.length) {
     const tagsChip = document.createElement('span');
     tagsChip.textContent = `${translate('popup.meta.tags')} ${identity.tags.join(', ')}`;
     meta.appendChild(tagsChip);
+    registerTextFit(tagsChip, { maxLines: 1 });
   }
 
   if (meta.childElementCount) {
@@ -336,17 +202,7 @@ function createIdentityCard(identity) {
     notes.className = 'identity-notes';
     notes.textContent = identity.notes;
     container.appendChild(notes);
-  }
-
-  if (currentOrigin) {
-    const status = document.createElement('div');
-    status.className = 'identity-status';
-    const authorized = isAuthorizedForOrigin(identity, currentOrigin);
-    status.textContent = authorized
-      ? translate('popup.status.authorized')
-      : translate('popup.status.unauthorized');
-    status.dataset.state = authorized ? 'authorized' : 'unauthorized';
-    container.appendChild(status);
+    registerTextFit(notes, { maxLines: 3 });
   }
 
   const actions = document.createElement('div');
@@ -355,69 +211,28 @@ function createIdentityCard(identity) {
   const copyDidButton = document.createElement('button');
   copyDidButton.className = 'primary';
   copyDidButton.textContent = translate('popup.actions.copyDid');
-  copyDidButton.addEventListener('click', (e) => { ripple(e); copyDid(identity); });
+  copyDidButton.addEventListener('click', () => { copyDid(identity); });
   actions.appendChild(copyDidButton);
+  registerTextFit(copyDidButton, { maxLines: 1, preserveTitle: false });
 
   const copyKeyButton = document.createElement('button');
   copyKeyButton.className = 'secondary';
   copyKeyButton.textContent = translate('popup.actions.copyPublicKey');
-  copyKeyButton.addEventListener('click', (e) => { ripple(e); copyPublicKey(identity); });
+  copyKeyButton.addEventListener('click', () => { copyPublicKey(identity); });
   actions.appendChild(copyKeyButton);
+  registerTextFit(copyKeyButton, { maxLines: 1, preserveTitle: false });
 
   if (identity.username || identity.password) {
     const fillButton = document.createElement('button');
     fillButton.className = 'secondary';
     fillButton.textContent = translate('popup.actions.autofill');
-    fillButton.addEventListener('click', (e) => { ripple(e); fillIdentity(identity); });
+    fillButton.addEventListener('click', () => { fillIdentity(identity); });
     actions.appendChild(fillButton);
-  }
-
-  if (currentOrigin && isAuthorizedForOrigin(identity, currentOrigin)) {
-    const revokeButton = document.createElement('button');
-    revokeButton.className = 'danger';
-    revokeButton.textContent = translate('popup.actions.revokeSite');
-    revokeButton.addEventListener('click', (e) => { ripple(e); revokeCurrentOrigin(identity); });
-    actions.appendChild(revokeButton);
+    registerTextFit(fillButton, { maxLines: 1, preserveTitle: false });
   }
 
   container.appendChild(actions);
   return container;
-}
-
-// Button ripple helper (CSS-driven)
-function ripple(event) {
-  const button = event.currentTarget;
-  if (!button) return;
-  const rect = button.getBoundingClientRect();
-  const x = ((event.clientX - rect.left) / rect.width) * 100;
-  const y = ((event.clientY - rect.top) / rect.height) * 100;
-  button.style.setProperty('--ripple-x', x + '%');
-  button.style.setProperty('--ripple-y', y + '%');
-}
-
-async function revokeCurrentOrigin(identity) {
-  if (!currentOrigin) {
-    return;
-  }
-  try {
-    const stored = await chrome.storage.sync.get({ [IDENTITY_STORAGE_KEY]: [] });
-    const items = Array.isArray(stored[IDENTITY_STORAGE_KEY]) ? stored[IDENTITY_STORAGE_KEY] : [];
-    const updated = items.map((item) => {
-      if (item.id !== identity.id) {
-        return item;
-      }
-      const nextOrigins = Array.isArray(item.authorizedOrigins)
-        ? item.authorizedOrigins.filter((entry) => entry && entry.origin !== currentOrigin)
-        : [];
-      return { ...item, authorizedOrigins: nextOrigins, updatedAt: new Date().toISOString() };
-    });
-    await chrome.storage.sync.set({ [IDENTITY_STORAGE_KEY]: updated });
-    setStatus(translate('popup.status.revokedSuccess'));
-    await loadIdentities();
-  } catch (error) {
-    console.error('Failed to revoke authorization', error);
-    setStatus(translate('popup.status.revokedError'), true);
-  }
 }
 
 async function fillIdentity(identity) {
@@ -437,7 +252,7 @@ async function fillIdentity(identity) {
     }
     await chrome.runtime.sendMessage({ type: 'record-last-used', identityId: identity.id });
     const label = identity.label || translate('common.untitledIdentity');
-    setStatus(translate('popup.status.filled', { label }));
+    setStatus(translate('popup.status.filled', { label }), false, 'success');
   } catch (error) {
     console.error('Fill identity failed', error);
     setStatus(error.message, true);
@@ -451,7 +266,7 @@ async function copyDid(identity) {
   }
   try {
     await navigator.clipboard.writeText(identity.did);
-    setStatus(translate('popup.status.copiedDid'));
+    setStatus(translate('popup.status.copiedDid'), false, 'success');
   } catch (error) {
     console.error('Copy DID failed', error);
     setStatus(translate('popup.status.copyDidError'), true);
@@ -466,47 +281,25 @@ async function copyPublicKey(identity) {
   try {
     const payload = JSON.stringify(identity.publicKeyJwk, null, 2);
     await navigator.clipboard.writeText(payload);
-    setStatus(translate('popup.status.copiedPublicKey'));
+    setStatus(translate('popup.status.copiedPublicKey'), false, 'success');
   } catch (error) {
     console.error('Copy public key failed', error);
     setStatus(translate('popup.status.copyPublicKeyError'), true);
   }
 }
 
-function setStatus(message, isError = false) {
+function setStatus(message, isError = false, tone = 'info') {
   statusMessage.textContent = message || '';
-  statusMessage.dataset.state = isError ? 'error' : 'info';
-}
-
-if (permissionButton) {
-  permissionButton.addEventListener('click', async () => {
-    if (!currentOrigin || !isHttpOrigin(currentOrigin)) {
-      setStatus(translate('popup.permissions.noOrigin'), true);
-      return;
-    }
-    const originPattern = toOriginPattern(currentOrigin);
-    if (!originPattern) {
-      setStatus(translate('popup.permissions.noOrigin'), true);
-      return;
-    }
-    try {
-      let hasPermission = await chrome.permissions.contains({ origins: [originPattern] });
-      if (!hasPermission) {
-        hasPermission = await chrome.permissions.request({ origins: [originPattern] });
-      }
-      if (!hasPermission) {
-        setStatus(translate('popup.permissions.denied'), true);
-        return;
-      }
-      await ensureContentScriptRegistration(originPattern);
-      await ensureBridgeInjectedIntoActiveTab();
-      await updatePermissionState();
-      setStatus(translate('popup.permissions.success'));
-    } catch (error) {
-      console.error('Unable to enable SDID bridge for origin', error);
-      setStatus(translate('popup.permissions.failed'), true);
-    }
-  });
+  statusMessage.dataset.fullText = statusMessage.textContent;
+  if (!message) {
+    statusMessage.removeAttribute('data-state');
+    statusMessage.classList.remove('is-visible');
+    statusMessage.removeAttribute('title');
+    return;
+  }
+  statusMessage.dataset.state = isError ? 'error' : tone || 'info';
+  statusMessage.classList.add('is-visible');
+  fitTextNow(statusMessage, { maxLines: 2 });
 }
 
 searchInput.addEventListener('input', (event) => {
@@ -545,8 +338,10 @@ if (languageButtons.length) {
 onLanguageChange((lang) => {
   currentLanguage = lang;
   applyTranslations(document);
+  syncStaticFullText();
   updateLanguageToggleUI(lang);
   applyFilter(searchInput.value.trim());
+  recalibrateTextFits();
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -561,10 +356,11 @@ async function init() {
   await i18nReady;
   currentLanguage = getLanguage();
   applyTranslations(document);
+  syncStaticFullText();
   updateLanguageToggleUI(currentLanguage);
   await loadActiveContext();
-  await updatePermissionState();
   await loadIdentities();
+  recalibrateTextFits();
 }
 
 init().catch((error) => {

@@ -6,6 +6,7 @@ import {
   onLanguageChange,
   applyTranslations
 } from '../shared/i18n.js';
+import { registerTextFit, recalibrateTextFits } from '../shared/textFit.js';
 
 const IDENTITY_STORAGE_KEY = 'identities';
 const KEY_ALGORITHM = { name: 'ECDSA', namedCurve: 'P-256' };
@@ -19,6 +20,8 @@ const importInput = document.getElementById('import-file');
 const clearStorageButton = document.getElementById('clear-storage');
 const confirmClearDialog = document.getElementById('confirm-clear');
 const collection = document.getElementById('identity-collection');
+const subtitle = document.querySelector('.subtitle');
+const importLabel = document.querySelector('.import-button span');
 
 const labelInput = document.getElementById('label');
 const rolesInput = document.getElementById('roles');
@@ -35,6 +38,27 @@ const togglePrivateButton = document.getElementById('toggle-private');
 const copyPrivateButton = document.getElementById('copy-private');
 const languageToggle = document.getElementById('language-toggle');
 const languageButtons = languageToggle ? Array.from(languageToggle.querySelectorAll('button')) : [];
+
+const staticFitTargets = [
+  { element: subtitle, options: { maxLines: 3 } },
+  { element: formTitle, options: { maxLines: 2 } },
+  { element: createDemoButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: exportButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: clearStorageButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: cancelEditButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: generateDidButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: togglePrivateButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: copyPrivateButton, options: { maxLines: 1, preserveTitle: false } },
+  { element: importLabel, options: { maxLines: 1 } }
+];
+
+staticFitTargets.forEach(({ element, options }) => {
+  if (element) {
+    registerTextFit(element, options);
+  }
+});
+
+languageButtons.forEach((button) => registerTextFit(button, { maxLines: 1, preserveTitle: false }));
 
 let currentLanguage = getLanguage();
 
@@ -221,6 +245,8 @@ function renderCollection() {
     message.textContent = translate('options.collection.empty');
     empty.appendChild(message);
     collection.appendChild(empty);
+    registerTextFit(message, { maxLines: 3 });
+    recalibrateTextFits();
     return;
   }
 
@@ -236,11 +262,13 @@ function renderCollection() {
     const heading = document.createElement('h3');
     heading.textContent = identity.label || translate('common.untitledIdentity');
     title.appendChild(heading);
+    registerTextFit(heading, { maxLines: 2 });
 
     if (identity.domain) {
       const domain = document.createElement('p');
       domain.textContent = `${translate('options.collection.meta.domain')} ${identity.domain}`;
       title.appendChild(domain);
+      registerTextFit(domain, { maxLines: 2 });
     }
     header.appendChild(title);
 
@@ -251,6 +279,7 @@ function renderCollection() {
         tagElement.className = 'tag-badge';
         tagElement.textContent = tag;
         tagsContainer.appendChild(tagElement);
+        registerTextFit(tagElement, { maxLines: 1 });
       });
       header.appendChild(tagsContainer);
     }
@@ -263,11 +292,13 @@ function renderCollection() {
     const roleLine = document.createElement('span');
     roleLine.textContent = `${translate('options.collection.meta.roles')} ${formatRoles(identity.roles)}`;
     meta.appendChild(roleLine);
+    registerTextFit(roleLine, { maxLines: 1 });
 
     if (identity.did) {
       const didLine = document.createElement('span');
       didLine.textContent = `${translate('options.collection.meta.did')} ${identity.did}`;
       meta.appendChild(didLine);
+      registerTextFit(didLine, { maxLines: 1 });
     }
 
     if (identity.did && identity.publicKeyJwk) {
@@ -276,6 +307,7 @@ function renderCollection() {
         identity
       )}`;
       meta.appendChild(verificationLine);
+      registerTextFit(verificationLine, { maxLines: 1 });
     }
 
     if (identity.publicKeyJwk) {
@@ -284,6 +316,7 @@ function renderCollection() {
         const keyLine = document.createElement('span');
         keyLine.textContent = `${translate('options.collection.meta.keyType')} ${keyType}`;
         meta.appendChild(keyLine);
+        registerTextFit(keyLine, { maxLines: 1 });
       }
     }
 
@@ -291,15 +324,12 @@ function renderCollection() {
       const usernameLine = document.createElement('span');
       usernameLine.textContent = `${translate('options.collection.meta.username')} ${identity.username}`;
       meta.appendChild(usernameLine);
+      registerTextFit(usernameLine, { maxLines: 1 });
     }
 
     item.appendChild(meta);
 
-    if (identity.notes) {
-      const notes = document.createElement('p');
-      notes.textContent = identity.notes;
-      item.appendChild(notes);
-    }
+    // Notes are intentionally omitted from the collection view to avoid showing seeded demo copy.
 
     if (identity.authorizedOrigins?.length) {
       const authorizedContainer = document.createElement('div');
@@ -320,12 +350,15 @@ function renderCollection() {
           time.textContent = `${translate('options.collection.lastUsed')} ${formatDate(entry.lastUsedAt)}`;
           info.appendChild(time);
           row.appendChild(info);
+          registerTextFit(info, { maxLines: 1 });
+          registerTextFit(time, { maxLines: 1 });
 
           const revokeButton = document.createElement('button');
           revokeButton.type = 'button';
           revokeButton.textContent = translate('options.collection.revoke');
           revokeButton.addEventListener('click', () => revokeAuthorization(identity.id, entry.origin));
           row.appendChild(revokeButton);
+          registerTextFit(revokeButton, { maxLines: 1, preserveTitle: false });
 
           list.appendChild(row);
         });
@@ -341,12 +374,14 @@ function renderCollection() {
     editButton.textContent = translate('options.collection.edit');
     editButton.addEventListener('click', () => startEdit(identity.id));
     actions.appendChild(editButton);
+    registerTextFit(editButton, { maxLines: 1, preserveTitle: false });
 
     const duplicateButton = document.createElement('button');
     duplicateButton.type = 'button';
     duplicateButton.textContent = translate('options.collection.duplicate');
     duplicateButton.addEventListener('click', () => duplicateIdentity(identity.id));
     actions.appendChild(duplicateButton);
+    registerTextFit(duplicateButton, { maxLines: 1, preserveTitle: false });
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
@@ -354,10 +389,13 @@ function renderCollection() {
     deleteButton.textContent = translate('options.collection.delete');
     deleteButton.addEventListener('click', () => deleteIdentity(identity.id));
     actions.appendChild(deleteButton);
+    registerTextFit(deleteButton, { maxLines: 1, preserveTitle: false });
 
     item.appendChild(actions);
     collection.appendChild(item);
   });
+
+  recalibrateTextFits();
 }
 
 function updateKeyDisplay(keyPair) {
@@ -377,14 +415,17 @@ function setPrivateVisibility(visible) {
   if (!privateKeyTextarea.value) {
     privateKeyTextarea.dataset.hidden = 'true';
     togglePrivateButton.textContent = translate('common.show');
+    recalibrateTextFits();
     return;
   }
   if (visible) {
     privateKeyTextarea.dataset.hidden = 'false';
     togglePrivateButton.textContent = translate('common.hide');
+    recalibrateTextFits();
   } else {
     privateKeyTextarea.dataset.hidden = 'true';
     togglePrivateButton.textContent = translate('common.show');
+    recalibrateTextFits();
   }
 }
 
@@ -396,6 +437,7 @@ async function generateDid() {
     isGeneratingDid = true;
     generateDidButton.disabled = true;
     generateDidButton.textContent = translate('common.generating');
+    recalibrateTextFits();
     const keyPair = await crypto.subtle.generateKey(KEY_ALGORITHM, true, ['sign', 'verify']);
     const publicKeyJwk = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
     const privateKeyJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
@@ -410,6 +452,7 @@ async function generateDid() {
     isGeneratingDid = false;
     generateDidButton.disabled = false;
     generateDidButton.textContent = translate('common.generateDid');
+    recalibrateTextFits();
   }
 }
 
@@ -428,6 +471,7 @@ function startEdit(identityId) {
   editingId = identity.id;
   formTitle.textContent = translate('options.form.editTitle');
   cancelEditButton.hidden = false;
+  recalibrateTextFits();
 
   labelInput.value = identity.label;
   rolesInput.value = identity.roles?.join(', ') || '';
@@ -516,6 +560,7 @@ function resetForm() {
   updateKeyDisplay(null);
   formTitle.textContent = translate('options.form.createTitle');
   cancelEditButton.hidden = true;
+  recalibrateTextFits();
 }
 
 function notify(message, isError = false) {
@@ -524,6 +569,7 @@ function notify(message, isError = false) {
     banner = document.createElement('div');
     banner.className = 'notification-banner';
     document.body.appendChild(banner);
+    registerTextFit(banner, { maxLines: 2 });
   }
   banner.textContent = message;
   banner.setAttribute('role', 'status');
@@ -532,6 +578,7 @@ function notify(message, isError = false) {
 
   banner.classList.add('visible');
   setTimeout(() => banner.classList.remove('visible'), 3200);
+  recalibrateTextFits();
 }
 
 function validateKeyPair() {
@@ -595,27 +642,25 @@ async function createDemoIdentities() {
   isSeedingDemo = true;
   createDemoButton.disabled = true;
   createDemoButton.textContent = translate('common.generating');
+  recalibrateTextFits();
   try {
     const templates = [
       {
         label: translate('options.demo.labels.operationsAdmin'),
         roles: ['Admin', 'Approver'],
         domain: 'https://console.example.com',
-        notes: translate('options.demo.notes.operationsAdmin'),
         tags: ['core', 'operations']
       },
       {
         label: translate('options.demo.labels.financeSigner'),
         roles: ['Finance', 'Signer'],
         domain: 'https://billing.example.com',
-        notes: translate('options.demo.notes.financeSigner'),
         tags: ['finance']
       },
       {
         label: translate('options.demo.labels.developerSandbox'),
         roles: ['Developer'],
         domain: 'https://sandbox.example.dev',
-        notes: translate('options.demo.notes.developerSandbox'),
         tags: ['sandbox', 'dev'],
         authorizedOrigins: [
           {
@@ -642,7 +687,6 @@ async function createDemoIdentities() {
         username: '',
         password: '',
         tags: template.tags || [],
-        notes: template.notes,
         did,
         publicKeyJwk,
         privateKeyJwk,
@@ -660,6 +704,7 @@ async function createDemoIdentities() {
     isSeedingDemo = false;
     createDemoButton.disabled = false;
     createDemoButton.textContent = translate('options.actions.createDemo');
+    recalibrateTextFits();
   }
 }
 
@@ -752,6 +797,7 @@ function updateLanguageToggleUI(language) {
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     button.classList.toggle('active', isActive);
   });
+  recalibrateTextFits();
 }
 
 function refreshDynamicText() {
@@ -764,6 +810,7 @@ function refreshDynamicText() {
     : translate('options.actions.createDemo');
   const isPrivateVisible = privateKeyTextarea.dataset.hidden === 'false';
   setPrivateVisibility(isPrivateVisible);
+  recalibrateTextFits();
 }
 
 if (languageButtons.length) {
@@ -784,6 +831,7 @@ onLanguageChange((lang) => {
   updateLanguageToggleUI(lang);
   refreshDynamicText();
   renderCollection();
+  recalibrateTextFits();
 });
 
 async function init() {

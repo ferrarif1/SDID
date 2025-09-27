@@ -1,5 +1,7 @@
 # SDID – Chrome Extension for Identity Management
 
+- [中文说明](README.zh.md)
+
 SDID is a Chrome extension that helps teams manage decentralized identities for passwordless and passkey-first workflows. Generate DID key pairs, sign login challenges, store fallback secrets, and approve dapp requests directly from the browser toolbar.
 
 ![Demo animation](images/demo.gif)

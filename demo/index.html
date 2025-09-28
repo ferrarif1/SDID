@@ -64,6 +64,21 @@
         <h2 data-i18n="sections.verification"></h2>
         <div id="verification" class="verification"></div>
       </section>
+
+      <section class="card" id="approvals-card">
+        <h2 data-i18n="approvals.title"></h2>
+        <p id="approval-status" class="approval-status"></p>
+        <div class="approval-actions" id="approval-actions" hidden>
+          <button
+            id="submit-approval"
+            class="primary"
+            data-i18n="approvals.actions.submit"
+            data-i18n-target="text,aria-label"
+            type="button"
+          ></button>
+        </div>
+        <div id="approval-list" class="approval-list"></div>
+      </section>
     </main>
 
     <footer class="footer">

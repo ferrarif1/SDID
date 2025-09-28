@@ -89,6 +89,10 @@ body {
   gap: 20px;
 }
 
+.card--wide {
+  grid-column: 1 / -1;
+}
+
 .card {
   background: #ffffff;
   border: 1px solid #ece2d5;
@@ -270,12 +274,21 @@ pre {
   gap: 6px;
   font-size: 0.9rem;
   color: #63584c;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .approval-card strong {
   color: #241c14;
+}
+
+.approval-card .identifier {
+  display: block;
+  color: #968b7d;
+  font-size: 0.8rem;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .approval-card small {
@@ -287,10 +300,21 @@ pre {
   border-collapse: collapse;
   font-size: 0.9rem;
   color: #63584c;
+  table-layout: fixed;
 }
 
 .approval-table thead {
   background: rgba(244, 242, 238, 0.9);
+}
+
+.approval-table-wrapper {
+  overflow-x: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.approval-table-wrapper .approval-table {
+  min-width: 600px;
 }
 
 .approval-table th,
@@ -299,8 +323,9 @@ pre {
   text-align: left;
   border-bottom: 1px solid #ece2d5;
   vertical-align: top;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .approval-table th {
@@ -311,6 +336,20 @@ pre {
 .approval-table td.actions {
   text-align: right;
   white-space: nowrap;
+}
+
+.approval-table td.status {
+  white-space: normal;
+}
+
+.approval-table .identifier {
+  display: block;
+  color: #968b7d;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .approval-table tr:last-child td {

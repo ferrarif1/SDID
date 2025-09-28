@@ -9,6 +9,7 @@ const approvalStatusElement = document.getElementById('approval-status');
 const approvalListElement = document.getElementById('approval-list');
 const submitApprovalButton = document.getElementById('submit-approval');
 const approvalActionsElement = document.getElementById('approval-actions');
+const approvalsCardElement = document.getElementById('approvals-card');
 
 const LANGUAGE_STORAGE_KEY = 'sdid-demo-language';
 const SUPPORTED_LANGUAGES = ['en', 'zh'];
@@ -391,6 +392,20 @@ function formatRolesList(roles) {
   return normalized.length ? normalized.join(', ') : '—';
 }
 
+function shortenIdentifier(value, { prefixLength = 10, suffixLength = 6 } = {}) {
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+  if (trimmed.length <= prefixLength + suffixLength + 1) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, prefixLength)}…${trimmed.slice(-suffixLength)}`;
+}
+
 function formatTimestamp(value) {
   if (!value) {
     return '—';
@@ -440,7 +455,9 @@ function createApplicantCard(request) {
     request.applicantLabel.trim() !== request.applicantDid
   ) {
     const didLine = document.createElement('small');
-    didLine.textContent = request.applicantDid;
+    didLine.className = 'muted identifier';
+    didLine.textContent = shortenIdentifier(request.applicantDid);
+    didLine.title = request.applicantDid;
     card.appendChild(didLine);
   }
 
@@ -521,11 +538,15 @@ function renderAdminApprovalList() {
       applicantCell.appendChild(strong);
 
       const didLine = document.createElement('div');
-      didLine.className = 'muted';
-      didLine.textContent = request.applicantDid;
+      didLine.className = 'muted identifier';
+      didLine.textContent = shortenIdentifier(request.applicantDid);
+      didLine.title = request.applicantDid;
       applicantCell.appendChild(didLine);
+      applicantCell.title = `${label} (${request.applicantDid})`;
     } else {
-      applicantCell.textContent = request.applicantDid || label || translate('labels.unknownIdentity');
+      const displayValue = request.applicantDid || label || translate('labels.unknownIdentity');
+      applicantCell.textContent = shortenIdentifier(displayValue);
+      applicantCell.title = displayValue;
     }
     row.appendChild(applicantCell);
 
@@ -538,6 +559,7 @@ function renderAdminApprovalList() {
     row.appendChild(createdCell);
 
     const statusCell = document.createElement('td');
+    statusCell.className = 'status';
     const statusKey = request.status === 'approved' ? 'approvals.list.statusApproved' : 'approvals.list.statusPending';
     statusCell.textContent = translate(statusKey);
     row.appendChild(statusCell);
@@ -558,7 +580,11 @@ function renderAdminApprovalList() {
     tbody.appendChild(row);
   });
   table.appendChild(tbody);
-  approvalListElement.appendChild(table);
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'approval-table-wrapper';
+  wrapper.appendChild(table);
+  approvalListElement.appendChild(wrapper);
 }
 
 function renderApprovalUI() {
@@ -571,6 +597,10 @@ function renderApprovalUI() {
   lastCertification = certification;
 
   approvalListElement.innerHTML = '';
+
+  if (approvalsCardElement) {
+    approvalsCardElement.classList.toggle('card--wide', certification.status === 'admin');
+  }
 
   if (approvalActionsElement) {
     approvalActionsElement.hidden = true;

@@ -43,13 +43,13 @@
             class="primary"
             data-i18n="actions.connect"
             data-i18n-target="text,aria-label"
-          ></button>
+          >Connect with SDID</button>
           <button
             id="force"
             class="secondary"
             data-i18n="actions.force"
             data-i18n-target="text,aria-label"
-          ></button>
+          >Force prompt</button>
         </div>
         <p class="hint" data-i18n="actions.hint"></p>
         <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -63,6 +63,21 @@
       <section class="card">
         <h2 data-i18n="sections.verification"></h2>
         <div id="verification" class="verification"></div>
+      </section>
+
+      <section class="card" id="approvals-card">
+        <h2 data-i18n="approvals.title"></h2>
+        <p id="approval-status" class="approval-status"></p>
+        <div class="approval-actions" id="approval-actions" hidden>
+          <button
+            id="submit-approval"
+            class="primary"
+            data-i18n="approvals.actions.submit"
+            data-i18n-target="text,aria-label"
+            type="button"
+          >Submit approval request</button>
+        </div>
+        <div id="approval-list" class="approval-list"></div>
       </section>
     </main>
 

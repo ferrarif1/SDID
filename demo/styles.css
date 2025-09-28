@@ -89,6 +89,10 @@ body {
   gap: 20px;
 }
 
+.card--wide {
+  grid-column: 1 / -1;
+}
+
 .card {
   background: #ffffff;
   border: 1px solid #ece2d5;
@@ -213,6 +217,9 @@ pre {
   padding: 16px;
   font-size: 0.85rem;
   color: #241c14;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   overflow-x: auto;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
@@ -231,6 +238,129 @@ pre {
 
 .verification .error {
   color: #c4554a;
+}
+
+.approval-status {
+  margin: 0;
+  color: #63584c;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.approval-actions[hidden] {
+  display: none;
+}
+
+.approval-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.approval-card {
+  border: 1px solid #ece2d5;
+  border-radius: 14px;
+  padding: 16px;
+  background: #faf7f2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #63584c;
+  overflow-wrap: break-word;
+}
+
+.approval-card strong {
+  color: #241c14;
+}
+
+.approval-card .identifier {
+  display: block;
+  color: #968b7d;
+  font-size: 0.8rem;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.approval-card small {
+  color: #968b7d;
+}
+
+.approval-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: #63584c;
+  table-layout: fixed;
+}
+
+.approval-table thead {
+  background: rgba(244, 242, 238, 0.9);
+}
+
+.approval-table-wrapper {
+  overflow-x: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.approval-table-wrapper .approval-table {
+  min-width: 600px;
+}
+
+.approval-table th,
+.approval-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #ece2d5;
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approval-table th {
+  font-weight: 600;
+  color: #241c14;
+}
+
+.approval-table td.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.approval-table td.status {
+  white-space: normal;
+}
+
+.approval-table .identifier {
+  display: block;
+  color: #968b7d;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.approval-table tr:last-child td {
+  border-bottom: none;
+}
+
+.approval-table .muted {
+  display: block;
+  color: #968b7d;
+  font-size: 0.8rem;
+  margin-top: 4px;
 }
 
 .footer {

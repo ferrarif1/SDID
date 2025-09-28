@@ -213,6 +213,9 @@ pre {
   padding: 16px;
   font-size: 0.85rem;
   color: #241c14;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   overflow-x: auto;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
@@ -267,6 +270,8 @@ pre {
   gap: 6px;
   font-size: 0.9rem;
   color: #63584c;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .approval-card strong {
@@ -294,6 +299,8 @@ pre {
   text-align: left;
   border-bottom: 1px solid #ece2d5;
   vertical-align: top;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .approval-table th {

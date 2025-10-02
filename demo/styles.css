@@ -240,6 +240,10 @@ pre {
   color: #2f6d46;
 }
 
+.verification .info {
+  color: #63584c;
+}
+
 .verification .error {
   color: #c4554a;
 }

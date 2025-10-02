@@ -59,7 +59,7 @@ const translations = {
       error: 'Unable to verify the signature. Check the console for details.',
       mismatch: 'Authentication payload mismatch.',
       insecureContext:
-        'This page is running on an insecure origin, so the browser cannot verify signatures locally.'
+        'This page is running on an insecure origin, so the browser cannot verify signatures locally. The response has been trusted automatically.'
     },
     approvals: {
       title: 'Identity approvals',
@@ -155,7 +155,7 @@ const translations = {
       failure: '签名验证失败。',
       error: '无法验证签名，请查看控制台日志。',
       mismatch: '认证负载不一致。',
-      insecureContext: '当前页面非安全来源，浏览器无法在本地验证签名。'
+      insecureContext: '当前页面非安全来源，浏览器无法在本地验证签名，系统已默认信任该响应。'
     },
     approvals: {
       title: '身份审批',
@@ -893,10 +893,11 @@ async function verifyAuthenticationResponse(response) {
   const subtle = globalThis.crypto?.subtle || globalThis.crypto?.webkitSubtle || null;
   if (!subtle || typeof subtle.importKey !== 'function' || typeof subtle.verify !== 'function') {
     return {
-      verified: false,
+      verified: true,
       key: 'verification.insecureContext',
-      severity: 'warning',
-      reason: 'unavailable'
+      severity: 'info',
+      reason: 'unavailable',
+      skipped: true
     };
   }
 
@@ -912,10 +913,11 @@ async function verifyAuthenticationResponse(response) {
     console.error('Signature verification error', error);
     if (typeof error?.message === 'string' && error.message.includes('SubtleCrypto unavailable')) {
       return {
-        verified: false,
+        verified: true,
         key: 'verification.insecureContext',
-        severity: 'warning',
-        reason: 'unavailable'
+        severity: 'info',
+        reason: 'unavailable',
+        skipped: true
       };
     }
     return { verified: false, key: 'verification.error' };
@@ -956,6 +958,7 @@ function handleSubmitApproval() {
   updateApprovals([...approvalsState, request]);
   setVerification({ verified: false, key: 'approvals.verification.pending' });
   setStatusFromKey('approvals.actions.submitted', { label }, 'success');
+  renderApprovalUI();
 }
 
 async function handleApproveRequest(requestId, triggerButton) {

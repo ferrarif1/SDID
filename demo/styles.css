@@ -205,6 +205,10 @@ button:disabled {
   color: #c4554a;
 }
 
+.status[data-state='warning'] {
+  color: #c27d1a;
+}
+
 .status[data-state='info'] {
   color: #63584c;
 }
@@ -236,8 +240,16 @@ pre {
   color: #2f6d46;
 }
 
+.verification .info {
+  color: #63584c;
+}
+
 .verification .error {
   color: #c4554a;
+}
+
+.verification .warning {
+  color: #c27d1a;
 }
 
 .approval-status {

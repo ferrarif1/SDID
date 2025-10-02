@@ -451,12 +451,33 @@ async function signPayload(identity, payload) {
   if (!identity?.privateKeyJwk) {
     throw new Error('Missing private key');
   }
-  const privateKey = await crypto.subtle.importKey('jwk', identity.privateKeyJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, [
-    'sign'
-  ]);
-  const data = new TextEncoder().encode(payload);
-  const signature = await crypto.subtle.sign({ name: 'ECDSA', hash: { name: 'SHA-256' } }, privateKey, data);
-  return bufferToBase64(signature);
+
+  const subtle = globalThis?.crypto?.subtle;
+  if (subtle && typeof subtle.importKey === 'function' && typeof subtle.sign === 'function') {
+    const privateKey = await subtle.importKey(
+      'jwk',
+      identity.privateKeyJwk,
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false,
+      ['sign']
+    );
+    const data = new TextEncoder().encode(payload);
+    const signature = await subtle.sign({ name: 'ECDSA', hash: { name: 'SHA-256' } }, privateKey, data);
+    return bufferToBase64(signature);
+  }
+
+  const response = await chrome.runtime.sendMessage({
+    type: 'sign-payload',
+    payload,
+    privateKeyJwk: identity.privateKeyJwk
+  });
+
+  if (!response?.success || !response.signature) {
+    const errorMessage = response?.error || 'Unable to sign payload';
+    throw new Error(errorMessage);
+  }
+
+  return response.signature;
 }
 
 function canonicalizeJson(value) {

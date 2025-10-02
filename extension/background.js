@@ -1,5 +1,43 @@
 const IDENTITY_STORAGE_KEY = 'identities';
 const LAST_USED_ID_KEY = 'lastUsedIdentityId';
+const DEFAULT_BRIDGE_ORIGINS = ['https://*/*', 'http://*/*'];
+
+function bufferToBase64(buffer) {
+  if (!buffer) {
+    return '';
+  }
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
+}
+
+async function signPayloadInBackground(privateKeyJwk, payload) {
+  if (!privateKeyJwk) {
+    throw new Error('Missing private key');
+  }
+  const subtle = globalThis?.crypto?.subtle;
+  if (!subtle) {
+    throw new Error('Background crypto unavailable');
+  }
+  const privateKey = await subtle.importKey(
+    'jwk',
+    privateKeyJwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+  const data = new TextEncoder().encode(payload);
+  const signature = await subtle.sign({ name: 'ECDSA', hash: { name: 'SHA-256' } }, privateKey, data);
+  return bufferToBase64(signature);
+}
+
+function mergeOriginsWithDefaults(origins = []) {
+  const normalized = Array.isArray(origins) ? origins.filter(Boolean) : [];
+  return [...new Set([...DEFAULT_BRIDGE_ORIGINS, ...normalized])];
+}
 
 function getContentScriptId(pattern) {
   const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -19,7 +57,7 @@ async function registerBridgeForOrigins(origins = []) {
   if (!chrome?.scripting?.registerContentScripts) {
     return;
   }
-  for (const originPattern of origins) {
+  for (const originPattern of mergeOriginsWithDefaults(origins)) {
     if (!isValidOriginPattern(originPattern)) {
       continue;
     }
@@ -62,6 +100,9 @@ async function unregisterBridgeForOrigins(origins = []) {
     return;
   }
   for (const originPattern of origins) {
+    if (DEFAULT_BRIDGE_ORIGINS.includes(originPattern)) {
+      continue;
+    }
     if (!isValidOriginPattern(originPattern)) {
       continue;
     }
@@ -80,6 +121,7 @@ async function unregisterBridgeForOrigins(origins = []) {
 
 async function syncRegisteredOrigins() {
   if (!chrome?.permissions?.getAll) {
+    await registerBridgeForOrigins();
     return;
   }
   try {
@@ -123,6 +165,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       });
     return true;
   }
+
+  if (message?.type === 'sign-payload' && message.privateKeyJwk && typeof message.payload === 'string') {
+    signPayloadInBackground(message.privateKeyJwk, message.payload)
+      .then((signature) => sendResponse({ success: true, signature }))
+      .catch((error) => {
+        console.error('Unable to sign payload in background', error);
+        sendResponse({ success: false, error: error?.message || 'Signing failed' });
+      });
+    return true;
+  }
+
   return false;
 });
 

@@ -1,5 +1,11 @@
 const IDENTITY_STORAGE_KEY = 'identities';
 const LAST_USED_ID_KEY = 'lastUsedIdentityId';
+const DEFAULT_BRIDGE_ORIGINS = ['https://*/*', 'http://*/*'];
+
+function mergeOriginsWithDefaults(origins = []) {
+  const normalized = Array.isArray(origins) ? origins.filter(Boolean) : [];
+  return [...new Set([...DEFAULT_BRIDGE_ORIGINS, ...normalized])];
+}
 
 function getContentScriptId(pattern) {
   const sanitized = pattern.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -19,7 +25,7 @@ async function registerBridgeForOrigins(origins = []) {
   if (!chrome?.scripting?.registerContentScripts) {
     return;
   }
-  for (const originPattern of origins) {
+  for (const originPattern of mergeOriginsWithDefaults(origins)) {
     if (!isValidOriginPattern(originPattern)) {
       continue;
     }
@@ -62,6 +68,9 @@ async function unregisterBridgeForOrigins(origins = []) {
     return;
   }
   for (const originPattern of origins) {
+    if (DEFAULT_BRIDGE_ORIGINS.includes(originPattern)) {
+      continue;
+    }
     if (!isValidOriginPattern(originPattern)) {
       continue;
     }
@@ -80,6 +89,7 @@ async function unregisterBridgeForOrigins(origins = []) {
 
 async function syncRegisteredOrigins() {
   if (!chrome?.permissions?.getAll) {
+    await registerBridgeForOrigins();
     return;
   }
   try {
